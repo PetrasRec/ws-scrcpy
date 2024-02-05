@@ -112,7 +112,6 @@ const front: webpack.Configuration = {
     output: {
         filename: 'bundle.js',
         path: CLIENT_DIST_PATH,
-        publicPath: '/',
     },
 };
 
