@@ -128,6 +128,9 @@ export class ShellClient extends ManagerClient<ParamsShell, never> {
             container = document.createElement('div');
             container.className = 'terminal-container';
             container.innerHTML = 'Note: to inspect logs, enter the command "logcat" <br><br>';
+            if (appendHTML === document.body) {
+                container.style.height = '80%';
+            }
             container.id = udid;
             appendHTML.appendChild(container);
         }

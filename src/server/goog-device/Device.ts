@@ -60,6 +60,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
             'ro.product.cpu.abi': '',
             'last.update.timestamp': 0,
             'emulator.uptime': 0,
+            'debug.previewerLocalhostURL': '',
         };
         this.client = AdbExtended.createClient();
         this.setState(state);
@@ -356,6 +357,11 @@ export class Device extends TypedEmitter<DeviceEvents> {
                 return true;
             });
 
+            const sduiPromise = this.getSDUIProp().then((sdui: string) => {
+                this.descriptor['debug.previewerLocalhostURL'] = sdui;
+                return true;
+            });
+
             const netIntPromise = this.updateInterfaces().then((interfaces) => {
                 return !!interfaces.length;
             });
@@ -368,7 +374,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
             const serverPromise = pidPromise.then(() => {
                 return !(this.descriptor.pid === -1 && this.spawnServer);
             });
-            Promise.all([propsPromise, netIntPromise, serverPromise, uptimePromise])
+            Promise.all([propsPromise, netIntPromise, serverPromise, uptimePromise, sduiPromise])
                 .then((results) => {
                     this.updateTimeoutId = undefined;
                     const failedCount = results.filter((result) => !result).length;
@@ -391,6 +397,12 @@ export class Device extends TypedEmitter<DeviceEvents> {
         }
         return;
     };
+
+    private async getSDUIProp(): Promise<string> {
+        return this.runShellCommandAdbKit('getprop debug.previewerLocalhostURL').then((output) => {
+            return output;
+        });
+    }
 
     private async getEmulatorUptime(): Promise<number> {
         return this.runShellCommandAdbKit("cat /proc/uptime | awk '{print $1}'").then((output) => {

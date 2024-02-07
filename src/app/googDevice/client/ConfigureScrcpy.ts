@@ -574,10 +574,12 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
         this.restartTCPButton.classList.add('button');
         this.restartTCPButton.innerText = 'Restart connection';
         this.restartTCPButton.addEventListener('click', () => {
+            const proxyPath = location.pathname.slice(0, -1);
             // restarting tcp connection endpoint
-            fetch('/restart-tcp', {
+            fetch(`${proxyPath || ''}/restart-tcp`, {
                 method: 'POST',
             });
+            location.reload();
         });
         this.restartTCPButton.classList.add('tcp');
         this.restartTCPButton.classList.add('hidden');
