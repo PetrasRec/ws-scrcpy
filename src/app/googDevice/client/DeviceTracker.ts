@@ -322,12 +322,30 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         const fullName = `${this.id}_${Util.escapeUdid(device.udid)}`;
         const servicesId = `device_services_${fullName}`;
 
+        const getSDUITarget = (): string => {
+            const target = device['debug.previewerLocalhostURL'];
+            if (target?.length > 0) {
+                const parts = target.split('//');
+                if (parts.length > 1) {
+                    return parts[1];
+                }
+
+                return target;
+            }
+
+            return 'no target';
+        };
+
         const divHtml = html`<div class="device-sub-header">Quick actions</div>
             <hr class="full-line" />
             <div id="${servicesId}" class="services"></div>
             <div class="device-sub-header">Emulator information</div>
             <hr class="full-line" />
             <div class="device-information">
+                <div class="device-property">
+                    SDUI target:
+                    <span class="device-value">${getSDUITarget()}</span>
+                </div>
                 <div class="device-property">
                     Manufacturer:
                     <span class="device-value">${device['ro.product.manufacturer']}</span>

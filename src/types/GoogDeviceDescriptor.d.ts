@@ -12,4 +12,5 @@ export default interface GoogDeviceDescriptor extends BaseDeviceDescriptor {
     pid: number;
     'last.update.timestamp': number;
     'emulator.uptime': number;
+    'debug.previewerLocalhostURL': string;
 }
