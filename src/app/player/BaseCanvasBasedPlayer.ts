@@ -29,7 +29,7 @@ export abstract class BaseCanvasBasedPlayer extends BasePlayer {
         let gl: any = null;
         while (!gl && index++ < validContextNames.length) {
             try {
-                gl = testCanvas.getContext(validContextNames[index]);
+                gl = testCanvas.getContext(validContextNames[index], { willReadFrequently: true });
             } catch (error: any) {
                 gl = null;
             }
@@ -43,6 +43,7 @@ export abstract class BaseCanvasBasedPlayer extends BasePlayer {
             tag.id = id;
         }
         tag.className = 'video-layer';
+        tag.setAttribute('willReadFrequently', 'true');
         return tag;
     }
 

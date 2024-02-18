@@ -16,16 +16,15 @@ const TAG = '[ShellClient]';
 
 export class ShellClient extends ManagerClient<ParamsShell, never> {
     public static ACTION = ACTION.SHELL;
-    public static start(params: ParamsShell): ShellClient {
-        return new ShellClient(params);
+    public static start(params: ParamsShell, trackerParams?: ParamsDeviceTracker): ShellClient {
+        return new ShellClient(params, trackerParams);
     }
 
     private readonly term: Terminal;
     private readonly fitAddon: FitAddon;
-    private readonly escapedUdid: string;
     private readonly udid: string;
 
-    constructor(params: ParamsShell) {
+    constructor(params: ParamsShell, trackerParams?: ParamsDeviceTracker) {
         if (params.htmlElementToAppend === undefined) {
             params.htmlElementToAppend = document.body;
         }
@@ -70,8 +69,7 @@ export class ShellClient extends ManagerClient<ParamsShell, never> {
         this.term.loadAddon(new AttachAddon(this.ws));
         this.fitAddon = new FitAddon();
         this.term.loadAddon(this.fitAddon);
-        this.escapedUdid = Util.escapeUdid(this.udid);
-        this.term.open(ShellClient.getOrCreateContainer(this.escapedUdid, params.htmlElementToAppend));
+        this.term.open(ShellClient.getOrCreateContainer(this.udid, params.htmlElementToAppend, trackerParams));
         this.updateTerminalSize();
         this.term.focus();
     }
@@ -122,16 +120,25 @@ export class ShellClient extends ManagerClient<ParamsShell, never> {
         this.ws.send(JSON.stringify(message));
     }
 
-    private static getOrCreateContainer(udid: string, appendHTML: HTMLElement): HTMLElement {
-        let container = document.getElementById(udid);
+    private static getOrCreateContainer(
+        udid: string,
+        appendHTML: HTMLElement,
+        params?: ParamsDeviceTracker,
+    ): HTMLElement {
+        const escapedUdid = Util.escapeUdid(udid);
+        let container = document.getElementById(escapedUdid);
         if (!container) {
             container = document.createElement('div');
             container.className = 'terminal-container';
-            container.innerHTML = 'Note: to inspect logs, enter the command "logcat" <br><br>';
+
             if (appendHTML === document.body) {
                 container.style.height = '80%';
+            } else if (params) {
+                container.innerHTML = ShellClient.createEntry(udid, 'shell', params)?.outerHTML + '<br>';
             }
-            container.id = udid;
+
+            container.innerHTML += 'Note: to inspect logs, enter the command "logcat" <br><br>';
+            container.id = escapedUdid;
             appendHTML.appendChild(container);
         }
         return container as HTMLElement;
@@ -139,6 +146,27 @@ export class ShellClient extends ManagerClient<ParamsShell, never> {
 
     public updateTerminalSize(): void {
         this.fitAddon.fit();
+    }
+
+    public static createEntry(udid: string, blockClass: string, params: ParamsDeviceTracker): HTMLElement | undefined {
+        const entry = document.createElement('a');
+        entry.classList.add('shell', blockClass);
+
+        entry.textContent = 'Open ADB shell in new window';
+        entry.setAttribute(
+            'href',
+            BaseDeviceTracker.buildLink(
+                {
+                    action: ACTION.SHELL,
+                    udid: udid,
+                },
+                params,
+            ),
+        );
+        entry.setAttribute('rel', 'noopener noreferrer');
+        entry.setAttribute('target', '_blank');
+
+        return entry;
     }
 
     public static createEntryForDeviceList(

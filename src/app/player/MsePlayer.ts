@@ -184,7 +184,7 @@ export class MsePlayer extends BasePlayer {
         const canvas = document.createElement('canvas');
         canvas.width = this.tag.clientWidth;
         canvas.height = this.tag.clientHeight;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
         if (ctx) {
             ctx.drawImage(this.tag, 0, 0, canvas.width, canvas.height);
         }

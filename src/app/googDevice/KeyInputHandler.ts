@@ -55,6 +55,7 @@ export class KeyInputHandler {
         });
         event.preventDefault();
     };
+
     private static attachListeners(): void {
         document.body.addEventListener('keydown', this.handler);
         document.body.addEventListener('keyup', this.handler);

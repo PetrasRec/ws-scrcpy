@@ -89,7 +89,7 @@ export abstract class InteractionHandler {
         public readonly keyEventsNames: KeyEventNames[],
     ) {
         this.tag = player.getTouchableElement();
-        this.ctx = this.tag.getContext('2d');
+        this.ctx = this.tag.getContext('2d', { willReadFrequently: true });
         InteractionHandler.loadImages();
         InteractionHandler.bindGlobalListeners(this);
     }

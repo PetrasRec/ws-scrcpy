@@ -13,9 +13,11 @@ import {
 } from './PromMetrics';
 import { IncomingMessage } from 'http';
 import { ACTION } from '../../common/Action';
+import bunyan from 'bunyan';
 
 export class WebSocketServer implements Service {
     private static instance?: WebSocketServer;
+    private static logger = bunyan.createLogger({ name: 'WebSocketServer' });
     private servers: WSServer[] = [];
     private mwFactories: Set<MwFactory> = new Set();
     private AUTH_EMAIL_HEADER = 'x-goog-authenticated-user-email';
@@ -120,10 +122,11 @@ export class WebSocketServer implements Service {
             const user_ldap = this.getUserLdap(request);
             const action = url.searchParams.get('action') || '';
             let processed = false;
-
+            WebSocketServer.logger.info({ user_ldap, action }, 'WebSocket request');
             if (action === ACTION.PROXY_ADB) {
                 webSocketConnections.labels(user_ldap).inc();
                 ws.on('close', () => {
+                    WebSocketServer.logger.info({ user_ldap, action }, 'WebSocket close request');
                     webSocketConnections.labels(user_ldap).dec();
                 });
             }

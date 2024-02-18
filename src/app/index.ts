@@ -81,7 +81,6 @@ window.onload = async function (): Promise<void> {
         ShellClient.start(ShellClient.parseParameters(parsedQuery));
         return;
     }
-    tools.push(ShellClient);
     /// #endif
 
     /// #if INCLUDE_DEV_TOOLS

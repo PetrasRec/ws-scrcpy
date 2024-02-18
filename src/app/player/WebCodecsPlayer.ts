@@ -78,7 +78,7 @@ export class WebCodecsPlayer extends BaseCanvasBasedPlayer {
 
     constructor(udid: string, displayInfo?: DisplayInfo, name = WebCodecsPlayer.playerFullName) {
         super(udid, displayInfo, name, WebCodecsPlayer.storageKeyPrefix);
-        const context = this.tag.getContext('2d');
+        const context = this.tag.getContext('2d', { willReadFrequently: true });
         if (!context) {
             throw Error('Failed to get 2d context from canvas');
         }

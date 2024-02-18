@@ -4,7 +4,9 @@ import { GoogMoreBox } from '../toolbox/GoogMoreBox';
 import { GoogToolBox } from '../toolbox/GoogToolBox';
 import VideoSettings from '../../VideoSettings';
 import Size from '../../Size';
+import KeyEvent from '../android/KeyEvent';
 import { ControlMessage } from '../../controlMessage/ControlMessage';
+import { TextControlMessage } from '../../controlMessage/TextControlMessage';
 import { ClientsStats, DisplayCombinedInfo } from '../../client/StreamReceiver';
 import { CommandControlMessage } from '../../controlMessage/CommandControlMessage';
 import Util from '../../Util';
@@ -420,6 +422,21 @@ export class StreamClientScrcpy
     }
 
     public onKeyEvent(event: KeyCodeControlMessage): void {
+        if (event.metaState & KeyEvent.META_META_ON) {
+            if (event.keycode === KeyEvent.KEYCODE_V) {
+                const sendClipboard = async () => {
+                    try {
+                        const text = await navigator.clipboard.readText();
+                        this.sendMessage(new TextControlMessage(text));
+                    } catch (err) {
+                        console.error('Failed to read clipboard contents:', err);
+                    }
+                };
+
+                sendClipboard();
+            }
+        }
+
         this.sendMessage(event);
     }
 

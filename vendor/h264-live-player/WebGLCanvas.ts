@@ -11,23 +11,22 @@ import Canvas from './Canvas';
 
 export default abstract class WebGLCanvas extends Canvas {
     protected static vertexShaderScript: Script = Script.createFromSource('x-shader/x-vertex', `
-      attribute vec3 aVertexPosition;
-      attribute vec2 aTextureCoord;
-      uniform mat4 uMVMatrix;
-      uniform mat4 uPMatrix;
-      varying highp vec2 vTextureCoord;
-      void main(void) {
-        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-        vTextureCoord = aTextureCoord;
-      }
+        attribute vec4 position;
+        varying vec2 v_texcoord;
+        uniform mat4 u_matrix;
+        void main() {
+            gl_Position = u_matrix * position;
+            v_texcoord = position.xy * .5 + .5;
+        }
     `);
     protected static fragmentShaderScript: Script = Script.createFromSource('x-shader/x-fragment', `
-      precision highp float;
-      varying highp vec2 vTextureCoord;
-      uniform sampler2D texture;
-      void main(void) {
-        gl_FragColor = texture2D(texture, vTextureCoord);
-      }
+        precision mediump float;
+        varying vec2 v_texcoord;
+        uniform sampler2D u_tex;
+        void main() {
+            gl_FragColor = texture2D(u_tex, v_texcoord);
+            gl_FragColor.rgb *= gl_FragColor.a;
+        }
     `);
     public quadVPBuffer?: WebGLBuffer | null;
     public quadVTCBuffer?: WebGLBuffer | null;
@@ -224,7 +223,11 @@ export default abstract class WebGLCanvas extends Canvas {
     protected onInitWebGL(): void {
         try {
             this.gl = this.canvas.getContext('experimental-webgl', {
-                preserveDrawingBuffer: true
+                preserveDrawingBuffer: true,
+                antialias: true,
+                alpha: false,
+                premultipliedAlpha: false,
+                powerPreference: 'high-performance',
             }) as WebGLRenderingContext;
         } catch (e: any) {
         }

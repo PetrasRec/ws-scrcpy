@@ -16,7 +16,7 @@
     --link-color-light: hsl(26, 100%, 65%); /* Lighter orange for hovered links */
     --link-color_visited: hsl(26, 100%, 45%); /* Darker orange for visited links */
     --link-color_visited-light: hsl(26, 100%, 55%); /* Slightly lighter for visited links */
-    --svg-checkbox-bg-color: hsl(26, 100%, 55%); /* Orange for checkboxes */
+    --svg-checkbox-bg-color: hsl(26, 100%, 40%); /* Orange for checkboxes */
     --svg-button-fill: hsl(26, 100%, 65%); /* Lighter orange for button fills */
     --kill-button-hover-color: hsl(0, 80%, 60%); /* A different shade for hover states */
     --url-color: hsl(0, 0%, 70%); /* Light gray for URLs */
@@ -153,5 +153,5 @@ body.stream {
 }
 
 .control-wrapper > input[type=checkbox]:checked + label > svg {
-    fill: var(--svg-checkbox-bg-color);
+    filter: drop-shadow(0 0 5px hsl(26, 100%, 55%));
 }
