@@ -35,7 +35,7 @@ export class GoogMoreBox {
         const input = (this.input = document.createElement('textarea'));
         input.classList.add('text-area');
         const sendButton = document.createElement('button');
-        sendButton.innerText = 'Send as keys';
+        sendButton.innerText = 'Send text';
 
         const inputWrapper = GoogMoreBox.wrap('p', [input, sendButton], moreBox);
         sendButton.onclick = () => {
@@ -177,6 +177,8 @@ export class GoogMoreBox {
         }
         GoogMoreBox.wrap('p', commands, moreBox);
 
+        // screen power mode
+        /*
         const screenPowerModeId = `screen_power_mode_${udid}_${playerName}_${displayId}`;
         const screenPowerModeLabel = document.createElement('label');
         screenPowerModeLabel.style.display = 'none';
@@ -201,7 +203,7 @@ export class GoogMoreBox {
         GoogMoreBox.wrap('p', [screenPowerModeCheck, screenPowerModeLabel, sendScreenPowerModeButton], moreBox, [
             'flex-center',
         ]);
-
+        */
         const qualityId = `show_video_quality_${udid}_${playerName}_${displayId}`;
         const qualityLabel = document.createElement('label');
         const qualityCheck = document.createElement('input');

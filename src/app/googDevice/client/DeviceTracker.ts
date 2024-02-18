@@ -48,6 +48,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
     private GeneralTab?: HTMLDivElement;
     private AdbShellTab?: HTMLDivElement;
     private AdvancedSettingsTab?: HTMLDivElement;
+    private AdbInstallTab?: HTMLDivElement;
     private ShellClient?: ShellClient;
 
     public static start(hostItem: HostItem): DeviceTracker {
@@ -400,12 +401,77 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
     private buildShellTab(device: GoogDeviceDescriptor): void {
         this.AdbShellTab = document.createElement('div');
         this.AdbShellTab.id = 'main-terminal-container';
-        const params: ParamsShell = {
+        const shellParams: ParamsShell = {
             udid: device.udid,
             action: ACTION.SHELL,
             htmlElementToAppend: this.AdbShellTab,
         };
-        this.ShellClient = ShellClient.start(params);
+
+        this.ShellClient = ShellClient.start(shellParams, this.params);
+    }
+
+    private buildAdbInstallTab(): void {
+        const divHtml = html`
+            <div class="device-sub-header">Install APK on Emulator</div>
+            <hr class="full-line" />
+            <textarea
+                class="url-textarea"
+                type="url"
+                id="apkUrl"
+                name="apkUrl"
+                placeholder="APK download url"
+                required
+            ></textarea>
+            <br />
+            <button type="button" class="url-button" id="installApkButton">Download & Install APK</button
+            ><span id="loadingAPKSpan"></span>
+        `.content;
+
+        const div = document.createElement('div');
+        div.appendChild(divHtml);
+        this.AdbInstallTab = div;
+
+        const button = this.AdbInstallTab.querySelector('#installApkButton') as HTMLButtonElement;
+        if (!button) {
+            return;
+        }
+
+        button.addEventListener('click', () => {
+            if (!this.AdbInstallTab) {
+                return;
+            }
+
+            const loadingSpan = document.getElementById('loadingAPKSpan');
+            if (!loadingSpan) {
+                return;
+            }
+
+            const apkUrl = (<HTMLTextAreaElement>document.getElementById('apkUrl'))?.value || '';
+            if (!apkUrl?.length) {
+                loadingSpan.innerHTML = ' Please provide a valid APK URL';
+                return;
+            }
+
+            button.disabled = true;
+            loadingSpan.innerHTML = '<span class="loader"></span> Installing...';
+            const data = {
+                apk_url: apkUrl,
+            };
+
+            const proxyPath = location.pathname.slice(0, -1);
+            fetch(`${proxyPath || ''}/install-apk`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then((response) => response.json())
+                .then((text) => {
+                    loadingSpan.innerHTML = ` ${text?.message || text?.error || ''}`;
+                    button.disabled = false;
+                });
+        });
     }
 
     protected buildDeviceRow(tbody: Element, device: GoogDeviceDescriptor): void {
@@ -428,6 +494,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             row = html`<div class="tabs">
                     <button class="tab" id="generalTab">General</button>
                     <button class="tab" id="adbShellTab">ADB Shell</button>
+                    <button class="tab" id="adbInstallTab">Install apps</button>
                     <button class="tab" id="advancedSettingsTab">Advanced settings</button>
                 </div>
                 <div class="tab-content" id="adbShellContent"></div>
@@ -435,6 +502,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                     <div class="device-stats">
                         <div class="tab-content" id="generalTabContent"></div>
                         <div class="tab-content" id="advancedSettingsContent"></div>
+                        <div class="tab-content" id="adbInstallContent"></div>
                         <div id="interfaces"></div>
                     </div>
                 </div>`.content;
@@ -557,6 +625,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         this.buildGeneralTab(device);
         this.buildAdvancedSettingsTab(device);
         this.buildShellTab(device);
+        this.buildAdbInstallTab();
 
         tbody.appendChild(row);
         this.buildEmulatorScreen(device);
@@ -618,6 +687,17 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             const AdvancedSettingsButton = document.getElementById('advancedSettingsTab');
             if (AdvancedSettingsButton) {
                 AdvancedSettingsButton.onclick = () => onClick('advancedSettingsContent', 'advancedSettingsTab');
+            }
+        }
+
+        const AdbInstallContent = document.getElementById('adbInstallContent');
+        if (AdbInstallContent && this.AdbInstallTab) {
+            AdbInstallContent.innerHTML = '';
+            AdbInstallContent.appendChild(this.AdbInstallTab);
+
+            const AdbInstallButton = document.getElementById('adbInstallTab');
+            if (AdbInstallButton) {
+                AdbInstallButton.onclick = () => onClick('adbInstallContent', 'adbInstallTab');
             }
         }
 

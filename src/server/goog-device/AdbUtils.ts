@@ -14,6 +14,10 @@ import Protocol from '@dead50f7/adbkit/lib/adb/protocol';
 import { Multiplexer } from '../../packages/multiplexer/Multiplexer';
 import { ReadStream } from 'fs';
 import PushTransfer from '@dead50f7/adbkit/lib/adb/sync/pushtransfer';
+import fs from 'fs';
+import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
+import bunyan from 'bunyan';
 
 type IncomingMessage = {
     statusCode?: number;
@@ -26,6 +30,7 @@ const fakeHost = '127.0.0.1:6666';
 const fakeHostRe = /127\.0\.0\.1:6666/;
 
 export class AdbUtils {
+    private static logger = bunyan.createLogger({ name: 'AdbUtils' });
     private static async formatStatsMin(entry: Entry): Promise<FileStats> {
         return {
             name: entry.name,
@@ -364,6 +369,70 @@ export class AdbUtils {
         const client = AdbExtended.createClient();
         const props = await client.getProperties(serial);
         return props['ro.product.model'] || 'Unknown device';
+    }
+
+    public static async downloadAndInstallAPK(url: string): Promise<void> {
+        // temp file for the APK
+        const apkPath = `temp_${uuidv4()}.apk`;
+        try {
+            // Attempt to download the APK
+            try {
+                this.logger.info({ url: url }, 'Downloading APK');
+                const response = await axios({
+                    url: url,
+                    method: 'GET',
+                    responseType: 'stream',
+                });
+
+                if (response.status !== 200) {
+                    throw new Error(`Unexpected response status: ${response.status}`);
+                }
+
+                if (response.headers['content-type'] !== 'application/vnd.android.package-archive') {
+                    throw new Error('The downloaded file is not an APK.');
+                }
+
+                const writer = fs.createWriteStream(apkPath);
+                response.data.pipe(writer);
+                this.logger.info({ url: url }, 'Writing downloaded apk to file');
+                await new Promise((resolve, reject) => {
+                    writer.on('finish', resolve);
+                    writer.on('error', reject);
+                });
+            } catch (downloadError) {
+                let errMsg = '';
+                if (downloadError instanceof Error) {
+                    errMsg = downloadError.message;
+                }
+                throw new Error(`APK download failed: ${errMsg}`);
+            }
+
+            // Attempt to install the APK
+            try {
+                const client = AdbExtended.createClient();
+                const devices = await client.listDevices();
+                if (devices.length === 0) {
+                    throw new Error('No devices connected.');
+                }
+                const device = devices[0]; // Assumes only one device is connected
+
+                this.logger.info({ url: url, device_id: device.id, apkPath: apkPath }, 'installing apk');
+                const success = await client.install(device.id, apkPath);
+                if (!success) {
+                    throw new Error('APK installation failed.');
+                }
+            } catch (installError) {
+                throw new Error('APK installation failed.');
+            }
+        } catch (error) {
+            // Rethrow the error for the caller to handle
+            throw error;
+        } finally {
+            // Cleanup: Remove the downloaded APK file
+            if (fs.existsSync(apkPath)) {
+                fs.unlinkSync(apkPath);
+            }
+        }
     }
 
     // TCP connection for some reason gets corrupted after prolonged idling

@@ -113,6 +113,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
     ) {
         super();
         this.touchableCanvas = document.createElement('canvas');
+        this.touchableCanvas.setAttribute('willReadFrequently', 'true');
         this.touchableCanvas.className = 'touch-layer';
         this.touchableCanvas.oncontextmenu = function (event: MouseEvent): void {
             event.preventDefault();
@@ -451,7 +452,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
         if (!this.showQualityStats) {
             return;
         }
-        const ctx = this.touchableCanvas.getContext('2d');
+        const ctx = this.touchableCanvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
             return;
         }
@@ -490,7 +491,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
     }
 
     private updateCanvas(onlyClear: boolean): void {
-        const ctx = this.touchableCanvas.getContext('2d');
+        const ctx = this.touchableCanvas.getContext('2d', { willReadFrequently: true });
         if (!ctx) {
             return;
         }

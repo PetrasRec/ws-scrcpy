@@ -19,7 +19,7 @@ export default class DragAndPushLogger implements DragAndPushListener {
     constructor(element: HTMLElement) {
         if (element instanceof HTMLCanvasElement) {
             const canvas = element as HTMLCanvasElement;
-            this.ctx = canvas.getContext('2d');
+            this.ctx = canvas.getContext('2d', { willReadFrequently: true });
         }
     }
     cleanDirtyLine = (line: number): void => {

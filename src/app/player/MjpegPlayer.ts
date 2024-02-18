@@ -69,7 +69,7 @@ export class MjpegPlayer extends BasePlayer {
         const canvas = document.createElement('canvas');
         canvas.width = this.videoWidth;
         canvas.height = this.videoHeight;
-        canvas.getContext('2d')?.drawImage(this.tag, 0, 0);
+        canvas.getContext('2d', { willReadFrequently: true })?.drawImage(this.tag, 0, 0);
         return canvas.toDataURL('image/png');
     }
 

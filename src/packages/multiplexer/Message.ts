@@ -9,7 +9,6 @@ export class Message {
         const type: MessageType = view.readUInt8(0);
         const channelId = view.readUInt32LE(1);
         const data: ArrayBuffer = buffer.slice(5);
-
         return new Message(type, channelId, data);
     }
 

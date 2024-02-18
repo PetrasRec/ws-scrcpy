@@ -8,6 +8,7 @@ import { Config } from '../Config';
 import { TypedEmitter } from '../../common/TypedEmitter';
 import promClient from 'prom-client';
 import { AdbUtils } from '../goog-device/AdbUtils';
+import bunyan from 'bunyan';
 
 const DEFAULT_STATIC_DIR = path.join(__dirname, './public');
 
@@ -21,12 +22,14 @@ interface HttpServerEvents {
 }
 
 export class HttpServer extends TypedEmitter<HttpServerEvents> implements Service {
+    private static logger = bunyan.createLogger({ name: 'HTTPServer' });
     private static instance: HttpServer;
     private static PUBLIC_DIR = DEFAULT_STATIC_DIR;
     private static SERVE_STATIC = true;
     private servers: ServerAndPort[] = [];
     private mainApp?: Express;
     private started = false;
+    private AUTH_EMAIL_HEADER = 'x-goog-authenticated-user-email';
 
     protected constructor() {
         super();
@@ -79,7 +82,8 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
         // Handle static file serving
         if (HttpServer.SERVE_STATIC && HttpServer.PUBLIC_DIR) {
             this.mainApp.use(express.static(HttpServer.PUBLIC_DIR));
-            console.log('static', HttpServer.PUBLIC_DIR);
+            this.mainApp.use(express.json());
+
             /// #if USE_WDA_MJPEG_SERVER
             const { MjpegProxyFactory } = await import('../mw/MjpegProxyFactory');
             this.mainApp.get('/mjpeg/:udid', new MjpegProxyFactory().proxyRequest);
@@ -91,12 +95,44 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                 res.end(await promClient.register.metrics());
             });
 
-            this.mainApp.post('/restart-tcp', async () => {
+            this.mainApp.post('/restart-tcp', async (req) => {
                 // TCP connection for some reason gets corrupted after prolonged idling or after restart
                 // adb tcpip 5555 fixes this issue, for now providing temporary workaround
+                HttpServer.logger.info(
+                    { email: req.headers[this.AUTH_EMAIL_HEADER] || 'unknown' },
+                    'Restarting tcp connection',
+                );
                 AdbUtils.resetTCPConnection();
             });
+
+            this.mainApp.post('/install-apk', async (req, res) => {
+                HttpServer.logger.info(
+                    { email: req.headers[this.AUTH_EMAIL_HEADER] || 'unknown' },
+                    'Install apk request received',
+                );
+                const { apk_url } = req.body;
+                if (!apk_url) {
+                    return res.status(400).send('Invalid request');
+                }
+
+                try {
+                    await AdbUtils.downloadAndInstallAPK(apk_url);
+                    return res.status(200).send({ message: 'APK installation done' });
+                } catch (error) {
+                    if (error instanceof Error) {
+                        HttpServer.logger.info(
+                            { email: req.headers[this.AUTH_EMAIL_HEADER] || 'unknown', error: error.message },
+                            'Error installing apk',
+                        );
+                        // Respond with the specific error message
+                        return res.status(404).send({ error: error.message });
+                    }
+
+                    return res.status(500).send({ error: 'Internal Server Error' });
+                }
+            });
         }
+
         const config = Config.getInstance();
         config.servers.forEach((serverItem) => {
             const { secure, port, redirectToSecure } = serverItem;

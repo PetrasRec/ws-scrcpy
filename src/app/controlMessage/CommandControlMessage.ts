@@ -25,8 +25,8 @@ export class CommandControlMessage extends ControlMessage {
         [ControlMessage.TYPE_EXPAND_NOTIFICATION_PANEL, 'Expand notifications'],
         [ControlMessage.TYPE_EXPAND_SETTINGS_PANEL, 'Expand settings'],
         [ControlMessage.TYPE_COLLAPSE_PANELS, 'Collapse panels'],
-        [ControlMessage.TYPE_GET_CLIPBOARD, 'Get clipboard'],
-        [ControlMessage.TYPE_SET_CLIPBOARD, 'Set clipboard'],
+        //[ControlMessage.TYPE_GET_CLIPBOARD, 'Get clipboard'],
+        //[ControlMessage.TYPE_SET_CLIPBOARD, 'Set clipboard'],
         [ControlMessage.TYPE_ROTATE_DEVICE, 'Rotate device'],
         //[ControlMessage.TYPE_CHANGE_STREAM_PARAMETERS, 'Change video settings'],
     ]);
@@ -163,9 +163,13 @@ export class CommandControlMessage extends ControlMessage {
         return event;
     }
 
-    public static pushFileCommandFromBuffer(
-        buffer: Buffer,
-    ): { id: number; state: FilePushState; chunk?: Buffer; fileSize?: number; fileName?: string } {
+    public static pushFileCommandFromBuffer(buffer: Buffer): {
+        id: number;
+        state: FilePushState;
+        chunk?: Buffer;
+        fileSize?: number;
+        fileName?: string;
+    } {
         let offset = 0;
         const type = buffer.readUInt8(offset);
         offset += 1;
