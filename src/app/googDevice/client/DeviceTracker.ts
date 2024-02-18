@@ -457,7 +457,9 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             const data = {
                 apk_url: apkUrl,
             };
-            fetch('/install-apk', {
+
+            const proxyPath = location.pathname.slice(0, -1);
+            fetch(`${proxyPath || ''}/install-apk`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

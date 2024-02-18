@@ -23,11 +23,8 @@ export class TextControlMessage extends ControlMessage {
         const buffer = Buffer.alloc(length + 1 + TextControlMessage.TEXT_SIZE_FIELD_LENGTH);
         let offset = 0;
         offset = buffer.writeUInt8(this.type, offset);
-        console.log('offset 1', offset);
         offset = buffer.writeUInt32BE(length, offset);
-        console.log('offset 2', offset);
-        offset = buffer.write(this.text, offset);
-        console.log('offset 3', offset, length, buffer.length);
+        buffer.write(this.text, offset);
         return buffer;
     }
 
