@@ -20,6 +20,7 @@ Added metrics for:
 - input_frames
 - dropped_frames
 - decoded_frames
+- websocket_latency
 
 All metrics have labels based on player name and user email that is using this instance.
 

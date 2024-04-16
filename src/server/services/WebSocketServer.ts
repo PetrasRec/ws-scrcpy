@@ -10,10 +10,13 @@ import {
     droppedFramesGauge,
     webSocketConnections,
     playerNames,
+    webSocketLatency,
 } from './PromMetrics';
 import { IncomingMessage } from 'http';
 import { ACTION } from '../../common/Action';
 import bunyan from 'bunyan';
+
+const HEARTBEAT_INTERVAL = 60_000;
 
 export class WebSocketServer implements Service {
     private static instance?: WebSocketServer;
@@ -21,6 +24,7 @@ export class WebSocketServer implements Service {
     private servers: WSServer[] = [];
     private mwFactories: Set<MwFactory> = new Set();
     private AUTH_EMAIL_HEADER = 'x-goog-authenticated-user-email';
+    private lastHeartbeatAt = new Map<WS, number>(); // Stores timestamp of when the last ping was acked
 
     protected constructor() {
         // nothing here
@@ -90,6 +94,67 @@ export class WebSocketServer implements Service {
         });
     }
 
+    private handleAdbProxy(user_ldap: string, action: string, ws: WS) {
+        webSocketConnections.labels(user_ldap).inc();
+
+        // Ensure we only perform close logic once to avoid double decrementing metrics
+        let closed = false;
+        const handleClose = () => {
+            if (closed) return;
+
+            WebSocketServer.logger.debug({ user_ldap, action }, 'Handling close logic');
+            webSocketConnections.labels(user_ldap).dec();
+            clearInterval(heartbeatInterval);
+            closed = true;
+
+            setImmediate(() => {
+                // Clean up last heartbeat timestamp asynchronously to flush any pending pong events
+                this.lastHeartbeatAt.delete(ws);
+            });
+        };
+
+        const heartbeatInterval = setInterval(() => {
+            const now = Date.now();
+            let lastAckAt = this.lastHeartbeatAt.get(ws);
+
+            // Initialize first ack for new connections
+            if (!lastAckAt) {
+                lastAckAt = Date.now();
+                this.lastHeartbeatAt.set(ws, lastAckAt);
+            }
+
+            // Connections are considered unresponsive if we miss three consecutive heartbeats
+            // i.e. the last pong we received is over 3 heartbeat intervals ago
+            const unresponsive = now - lastAckAt > HEARTBEAT_INTERVAL * 3;
+            if (unresponsive) {
+                WebSocketServer.logger.debug({ user_ldap, action, now, lastAckAt }, 'Closing due to missed heartbeat');
+                handleClose();
+                ws.close(4003, 'Heartbeat timeout');
+            } else {
+                WebSocketServer.logger.debug({ user_ldap, action }, 'Sending ping');
+                ws.ping(now.toString());
+            }
+        }, HEARTBEAT_INTERVAL);
+
+        ws.on('pong', (data) => {
+            WebSocketServer.logger.debug({ user_ldap, action }, 'Received heartbeat ack');
+
+            // Update last heartbeat at
+            const now = Date.now();
+            this.lastHeartbeatAt.set(ws, now);
+
+            // Record latency metric
+            const pingTimestamp = Number(data.toString());
+            const diff = now - pingTimestamp;
+            webSocketLatency.labels(user_ldap).observe(diff);
+        });
+
+        ws.on('close', () => {
+            WebSocketServer.logger.info({ user_ldap, action }, 'WebSocket close request');
+            handleClose();
+        });
+    }
+
     public attachToServer(item: ServerAndPort): WSServer {
         const { server, port } = item;
         const TAG = `WebSocket Server {tcp:${port}}`;
@@ -123,12 +188,9 @@ export class WebSocketServer implements Service {
             const action = url.searchParams.get('action') || '';
             let processed = false;
             WebSocketServer.logger.info({ user_ldap, action }, 'WebSocket request');
+
             if (action === ACTION.PROXY_ADB) {
-                webSocketConnections.labels(user_ldap).inc();
-                ws.on('close', () => {
-                    WebSocketServer.logger.info({ user_ldap, action }, 'WebSocket close request');
-                    webSocketConnections.labels(user_ldap).dec();
-                });
+                this.handleAdbProxy(user_ldap, action, ws);
             }
 
             for (const mwFactory of this.mwFactories.values()) {

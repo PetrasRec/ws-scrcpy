@@ -34,4 +34,18 @@ const webSocketConnections = new promClient.Gauge({
     labelNames: ['user_ldap'],
 });
 
-export { decodedFramesGauge, droppedFramesGauge, inputBytesGauge, inputFramesGauge, webSocketConnections, playerNames };
+const webSocketLatency = new promClient.Histogram({
+    name: 'scrcpy_ws_latency',
+    help: 'Records the latency of WebSocket connections in milliseconds',
+    labelNames: ['user_ldap'],
+});
+
+export {
+    decodedFramesGauge,
+    droppedFramesGauge,
+    inputBytesGauge,
+    inputFramesGauge,
+    webSocketConnections,
+    playerNames,
+    webSocketLatency,
+};
