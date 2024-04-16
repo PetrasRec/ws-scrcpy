@@ -29,6 +29,7 @@ All metrics have labels based on player name and user email that is using this i
 - Added navbar at the top.
 - Emulator screen is rendered on the same main page instantly.
 - Default player is preselected and a new dropdown added if user wants to change the player.
+- Added `browser-sync` integration. For hot reload development, run `npm run dev` and wait for the browsersync tab to open (`localhost:3001`).
 
 # Original readme
 
