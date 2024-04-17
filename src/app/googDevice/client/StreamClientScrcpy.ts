@@ -59,7 +59,7 @@ export class StreamClientScrcpy
     private requestedVideoSettings?: VideoSettings;
     private touchHandler?: FeaturedInteractionHandler;
     private moreBox?: GoogMoreBox;
-    private player?: BasePlayer;
+    public player?: BasePlayer;
     private filePushHandler?: FilePushHandler;
     private fitToScreen?: boolean;
     private metricsWs?: WebSocket;

@@ -1,5 +1,6 @@
 import { KeyCodeControlMessage } from '../controlMessage/KeyCodeControlMessage';
 import KeyEvent from './android/KeyEvent';
+import { ConfigureScrcpy } from './client/ConfigureScrcpy';
 import { KeyToCodeMap } from './KeyToCodeMap';
 
 export interface KeyEventListener {
@@ -9,7 +10,13 @@ export interface KeyEventListener {
 export class KeyInputHandler {
     private static readonly repeatCounter: Map<number, number> = new Map();
     private static readonly listeners: Set<KeyEventListener> = new Set();
+
     private static handler = (event: Event): void => {
+        const isFocused = ConfigureScrcpy.streamClientScrcpy?.player?.isFocused ?? false;
+        if (!isFocused) {
+            return;
+        }
+
         const keyboardEvent = event as KeyboardEvent;
         const keyCode = KeyToCodeMap.get(keyboardEvent.code);
         if (!keyCode) {

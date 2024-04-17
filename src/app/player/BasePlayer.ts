@@ -86,7 +86,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
     public readonly resizeVideoToBounds: boolean = false;
     protected videoHeight = -1;
     protected videoWidth = -1;
-
+    public isFocused: boolean;
     public static storageKeyPrefix = 'BaseDecoder';
     public static playerFullName = 'BasePlayer';
     public static playerCodeName = 'baseplayer';
@@ -112,14 +112,22 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
         protected tag: HTMLElement = document.createElement('div'),
     ) {
         super();
+
+        // Create touchable canvas
         this.touchableCanvas = document.createElement('canvas');
         this.touchableCanvas.setAttribute('willReadFrequently', 'true');
         this.touchableCanvas.className = 'touch-layer';
         this.touchableCanvas.oncontextmenu = function (event: MouseEvent): void {
             event.preventDefault();
         };
+
+        // Set video settings
         const preferred = this.getPreferredVideoSetting();
         this.videoSettings = BasePlayer.getVideoSettingFromStorage(preferred, this.storageKeyPrefix, udid, displayInfo);
+
+        // Set up focus logic
+        this.isFocused = false;
+        document.body.addEventListener('click', this.onClick.bind(this));
     }
 
     protected calculateScreenInfoForBounds(videoWidth: number, videoHeight: number): void {
@@ -524,6 +532,13 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
             ctx.fillText(text, p, y - p - line * (height + p));
         });
         ctx.restore();
+    }
+
+    private onClick(event: MouseEvent): void {
+        const focused = event.target === this.touchableCanvas;
+
+        this.isFocused = focused;
+        this.touchableCanvas.classList.toggle('focused', focused);
     }
 
     public setShowQualityStats(value: boolean): void {

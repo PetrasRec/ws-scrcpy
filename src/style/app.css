@@ -96,11 +96,16 @@ body.stream {
     z-index: 6;
 }
 
+.touch-layer.focused {
+    box-shadow: 0 0 5px 5px var(--device-border-color);
+}
+
 .video {
     float: right;
     max-height: 100%;
     max-width: 100%;
     background-color: #000000;
+    margin: 5px;
 }
 
 

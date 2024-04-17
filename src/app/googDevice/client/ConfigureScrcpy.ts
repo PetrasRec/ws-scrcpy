@@ -50,7 +50,7 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
     private dialogContainer?: HTMLElement;
     private statusText = '';
     private connectionCount = 0;
-    private static streamClientScrcpy?: StreamClientScrcpy;
+    public static streamClientScrcpy?: StreamClientScrcpy;
     private playerOptionMapping: { [key: string]: number } = {};
     private hidden = true;
     private restartTCPButton?: HTMLButtonElement;
