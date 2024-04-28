@@ -32,6 +32,7 @@ import { ACTION } from '../../../common/Action';
 import { StreamReceiverScrcpy } from './StreamReceiverScrcpy';
 import { ParamsDeviceTracker } from '../../../types/ParamsDeviceTracker';
 import { ScrcpyFilePushStream } from '../filePush/ScrcpyFilePushStream';
+import { CurrentWindow } from '../../CurrentWindow';
 
 type StartParams = {
     udid: string;
@@ -56,9 +57,11 @@ export class StreamClientScrcpy
     private clientId = -1;
     private clientsCount = -1;
     private joinedStream = false;
+    private keyHandlerEnabled = true;
     private requestedVideoSettings?: VideoSettings;
     private touchHandler?: FeaturedInteractionHandler;
     private moreBox?: GoogMoreBox;
+    private toolBox?: GoogToolBox;
     public player?: BasePlayer;
     private filePushHandler?: FilePushHandler;
     private fitToScreen?: boolean;
@@ -315,6 +318,63 @@ export class StreamClientScrcpy
         this.metricsWs?.close();
     };
 
+    public async onPopOutClick(popOut: boolean): Promise<void> {
+        if (popOut) {
+            return this.openPIP();
+        } else {
+            return this.closePIP();
+        }
+    }
+
+    private async openPIP(): Promise<void> {
+        if (!this.touchHandler || !this.player || !this.deviceView) return;
+
+        // Initialize the wrapped pip window
+        const bounds = this.deviceView.getBoundingClientRect();
+        const pipWindow = await documentPictureInPicture.requestWindow({
+            width: Math.ceil(bounds.width),
+            height: Math.ceil(bounds.height),
+        });
+
+        const currentPIPWindow = new CurrentWindow(pipWindow);
+        currentPIPWindow.copyStylesheets();
+
+        // Move device view and set up listeners
+        this.setTouchListeners(this.player);
+        this.player.setCurrentWindow(currentPIPWindow);
+        pipWindow.document.body.appendChild(this.deviceView);
+        pipWindow.addEventListener('pagehide', () => {
+            this.closePIP();
+        });
+
+        // Move key handler from main to PIP
+        if (this.keyHandlerEnabled) {
+            this.setHandleKeyboardEvents(false, CurrentWindow.main);
+            this.setHandleKeyboardEvents(true, currentPIPWindow);
+        }
+    }
+
+    private async closePIP(): Promise<void> {
+        if (!this.deviceView || !this.player || !this.toolBox || !CurrentWindow.pipWindow) return;
+
+        // Move key handler from PIP to main
+        if (this.keyHandlerEnabled) {
+            this.setHandleKeyboardEvents(false, CurrentWindow.pipWindow);
+            this.setHandleKeyboardEvents(true, CurrentWindow.main);
+        }
+
+        // Move device view back to main window
+        document.body.appendChild(this.deviceView);
+        CurrentWindow.pipWindow?.currentWindow.close();
+        await Util.waitFor(() => CurrentWindow.pipWindow === null);
+        this.setTouchListeners(this.player);
+        this.player.setCurrentWindow(CurrentWindow.main);
+
+        // Disable the popout checkbox
+        const popout = this.toolBox.getHolderElement().querySelector('#input_popout') as HTMLInputElement;
+        popout.checked = false;
+    }
+
     public startStream({ udid, player, playerName, videoSettings, fitToScreen }: StartParams): void {
         if (!udid) {
             throw Error(`Invalid udid value: "${udid}"`);
@@ -340,6 +400,7 @@ export class StreamClientScrcpy
         }
         this.player = player;
         this.setTouchListeners(player);
+        player.setCurrentWindow(CurrentWindow.main);
 
         if (!videoSettings) {
             videoSettings = player.getVideoSettings();
@@ -371,6 +432,7 @@ export class StreamClientScrcpy
         const moreBox = googMoreBox.getHolderElement();
         googMoreBox.setOnStop(stop);
         const googToolBox = GoogToolBox.createToolBox(udid, player, this, moreBox);
+        this.toolBox = googToolBox;
         // enable keyboard events by default
         this.setHandleKeyboardEvents(true);
         this.controlButtons = googToolBox.getHolderElement();
@@ -413,11 +475,14 @@ export class StreamClientScrcpy
         return this.deviceName;
     }
 
-    public setHandleKeyboardEvents(enabled: boolean): void {
+    public setHandleKeyboardEvents(enabled: boolean, currentWindow?: CurrentWindow): void {
+        this.keyHandlerEnabled = enabled;
+        currentWindow ??= CurrentWindow.pipWindow ?? CurrentWindow.main;
+
         if (enabled) {
-            KeyInputHandler.addEventListener(this);
+            KeyInputHandler.addEventListener(currentWindow, this);
         } else {
-            KeyInputHandler.removeEventListener(this);
+            KeyInputHandler.removeEventListener(currentWindow, this);
         }
     }
 
@@ -425,8 +490,9 @@ export class StreamClientScrcpy
         if (event.metaState & KeyEvent.META_META_ON) {
             if (event.keycode === KeyEvent.KEYCODE_V) {
                 const sendClipboard = async () => {
+                    const { currentWindow } = CurrentWindow.pipWindow ?? CurrentWindow.main;
                     try {
-                        const text = await navigator.clipboard.readText();
+                        const text = await currentWindow.navigator.clipboard.readText();
                         this.sendMessage(new TextControlMessage(text));
                     } catch (err) {
                         console.error('Failed to read clipboard contents:', err);
@@ -464,10 +530,10 @@ export class StreamClientScrcpy
     }
 
     private setTouchListeners(player: BasePlayer): void {
-        if (this.touchHandler) {
-            return;
-        }
-        this.touchHandler = new FeaturedInteractionHandler(player, this);
+        const currentWindow = CurrentWindow.pipWindow ?? CurrentWindow.main;
+
+        this.touchHandler?.release();
+        this.touchHandler = new FeaturedInteractionHandler(player, this, currentWindow);
     }
 
     public applyNewVideoSettings(videoSettings: VideoSettings, saveToStorage: boolean): void {
