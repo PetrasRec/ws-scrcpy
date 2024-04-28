@@ -1,4 +1,5 @@
 import { KeyCodeControlMessage } from '../controlMessage/KeyCodeControlMessage';
+import { CurrentWindow } from '../CurrentWindow';
 import KeyEvent from './android/KeyEvent';
 import { ConfigureScrcpy } from './client/ConfigureScrcpy';
 import { KeyToCodeMap } from './KeyToCodeMap';
@@ -63,24 +64,15 @@ export class KeyInputHandler {
         event.preventDefault();
     };
 
-    private static attachListeners(): void {
-        document.body.addEventListener('keydown', this.handler);
-        document.body.addEventListener('keyup', this.handler);
-    }
-    private static detachListeners(): void {
-        document.body.removeEventListener('keydown', this.handler);
-        document.body.removeEventListener('keyup', this.handler);
-    }
-    public static addEventListener(listener: KeyEventListener): void {
-        if (!this.listeners.size) {
-            this.attachListeners();
-        }
+    public static addEventListener(currentWindow: CurrentWindow, listener: KeyEventListener): void {
         this.listeners.add(listener);
+        currentWindow.document.body.addEventListener('keydown', this.handler);
+        currentWindow.document.body.addEventListener('keyup', this.handler);
     }
-    public static removeEventListener(listener: KeyEventListener): void {
+
+    public static removeEventListener(currentWindow: CurrentWindow, listener: KeyEventListener): void {
         this.listeners.delete(listener);
-        if (!this.listeners.size) {
-            this.detachListeners();
-        }
+        currentWindow.document.body.removeEventListener('keydown', this.handler);
+        currentWindow.document.body.removeEventListener('keyup', this.handler);
     }
 }

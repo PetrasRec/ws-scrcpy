@@ -8,6 +8,7 @@ import TouchPointPNG from '../../public/images/multitouch/touch_point.png';
 import CenterPointPNG from '../../public/images/multitouch/center_point.png';
 import Util from '../Util';
 import { BasePlayer } from '../player/BasePlayer';
+import { CurrentWindow } from '../CurrentWindow';
 
 interface Touch {
     action: number;
@@ -87,22 +88,23 @@ export abstract class InteractionHandler {
         public readonly player: BasePlayer,
         public readonly touchEventsNames: InteractionEvents[],
         public readonly keyEventsNames: KeyEventNames[],
+        currentWindow: CurrentWindow = CurrentWindow.main,
     ) {
         this.tag = player.getTouchableElement();
         this.ctx = this.tag.getContext('2d', { willReadFrequently: true });
         InteractionHandler.loadImages();
-        InteractionHandler.bindGlobalListeners(this);
+        InteractionHandler.bindGlobalListeners(this, currentWindow.document);
     }
 
     protected abstract onInteraction(event: MouseEvent | TouchEvent): void;
     protected abstract onKey(event: KeyboardEvent): void;
 
-    protected static bindGlobalListeners(interactionHandler: InteractionHandler): void {
+    protected static bindGlobalListeners(interactionHandler: InteractionHandler, currentDocument: Document): void {
         interactionHandler.touchEventsNames.forEach((eventName) => {
             let set: Set<InteractionHandler> | undefined = InteractionHandler.eventListeners.get(eventName);
             if (!set) {
                 set = new Set();
-                document.body.addEventListener(eventName, this.onInteractionEvent, InteractionHandler.options);
+                currentDocument.body.addEventListener(eventName, this.onInteractionEvent, InteractionHandler.options);
                 this.eventListeners.set(eventName, set);
             }
             set.add(interactionHandler);
@@ -111,7 +113,7 @@ export abstract class InteractionHandler {
             let set = InteractionHandler.eventListeners.get(eventName);
             if (!set) {
                 set = new Set();
-                document.body.addEventListener(eventName, this.onKeyEvent);
+                currentDocument.body.addEventListener(eventName, this.onKeyEvent);
                 this.eventListeners.set(eventName, set);
             }
             set.add(interactionHandler);
