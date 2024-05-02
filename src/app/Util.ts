@@ -216,4 +216,20 @@ export default class Util {
     static setImmediate(fn: () => any): void {
         Promise.resolve().then(fn);
     }
+
+    /**
+     * Returns a promise that resolves when the given condition passes
+     * @param condition An arrow function describing the condition to evaluate
+     * @param ms The interval at which to evaluate the condition
+     */
+    static waitFor(condition: () => Promise<unknown> | unknown, ms = 10): Promise<void> {
+        return new Promise((resolve) => {
+            const interval = setInterval(async () => {
+                if (await condition()) {
+                    clearInterval(interval);
+                    resolve();
+                }
+            }, ms);
+        });
+    }
 }
