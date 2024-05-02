@@ -331,13 +331,29 @@ export class StreamClientScrcpy
 
         // Initialize the wrapped pip window
         const bounds = this.deviceView.getBoundingClientRect();
-        const pipWindow = await documentPictureInPicture.requestWindow({
-            width: Math.ceil(bounds.width),
-            height: Math.ceil(bounds.height),
-        });
+        const width = Math.ceil(bounds.width);
+        const height = Math.ceil(bounds.height);
+        const pipWindow = await documentPictureInPicture.requestWindow({ height, width });
 
         const currentPIPWindow = new CurrentWindow(pipWindow);
         currentPIPWindow.copyStylesheets();
+
+        // On first click, try resizing the pip window to properly fit the player
+        // The reason this is necessary is because the PIP API imposes restrictions on the
+        // aspect ratio of PIP windows to "provide a reasonable user experience" (???)
+        // Quoting MDN:
+        // > If values [...] set too large, the browser will clamp or ignore the values as appropriate
+        // > to provide a reasonable user experience. The clamped size will vary
+        // > depending on implementation, display size, and other factors.
+        // On top of that, `window.resizeBy` is one of the APIs that require user activation, meaning
+        // we're not allowed to resize the window when it's created, only in the context of a user action
+        pipWindow.addEventListener(
+            'click',
+            () => {
+                currentPIPWindow.resizeInner(width, height);
+            },
+            { once: true },
+        );
 
         // Move device view and set up listeners
         this.setTouchListeners(this.player);

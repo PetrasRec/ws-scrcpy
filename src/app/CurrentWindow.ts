@@ -35,6 +35,18 @@ export class CurrentWindow {
     }
 
     /**
+     * Wrapper around `window.resizeTo` that takes the outer window padding into account
+     * @param width The target innerHeight of the window
+     * @param height The target innerWidth of the window
+     */
+    public resizeInner(width: number, height: number): void {
+        const deltaX = this.currentWindow.outerWidth - this.currentWindow.innerWidth;
+        const deltaY = this.currentWindow.outerHeight - this.currentWindow.innerHeight;
+
+        this.currentWindow.resizeTo(width + deltaX, height + deltaY);
+    }
+
+    /**
      * Checks if a value is an instance of a class in the current window context
      * This is needed because each window context has it's own instances:
      * $('iframe').contentWindow.window.MouseEvent != window.MouseEvent
