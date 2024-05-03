@@ -5,6 +5,7 @@ import { TouchControlMessage } from '../controlMessage/TouchControlMessage';
 import MotionEvent from '../MotionEvent';
 import ScreenInfo from '../ScreenInfo';
 import { ScrollControlMessage } from '../controlMessage/ScrollControlMessage';
+import { CurrentWindow } from '../CurrentWindow';
 
 const TAG = '[FeaturedTouchHandler]';
 
@@ -29,8 +30,17 @@ export class FeaturedInteractionHandler extends InteractionHandler {
     private readonly storedFromTouchEvent = new Map<number, TouchControlMessage>();
     private lastScrollEvent?: { time: number; hScroll: number; vScroll: number };
 
-    constructor(player: BasePlayer, public readonly listener: InteractionHandlerListener) {
-        super(player, FeaturedInteractionHandler.touchEventsNames, FeaturedInteractionHandler.keyEventsNames);
+    constructor(
+        player: BasePlayer,
+        public readonly listener: InteractionHandlerListener,
+        private currentWindow: CurrentWindow,
+    ) {
+        super(
+            player,
+            FeaturedInteractionHandler.touchEventsNames,
+            FeaturedInteractionHandler.keyEventsNames,
+            currentWindow,
+        );
         this.tag.addEventListener('mouseleave', this.onMouseLeave);
         this.tag.addEventListener('mouseenter', this.onMouseEnter);
     }
@@ -62,11 +72,11 @@ export class FeaturedInteractionHandler extends InteractionHandler {
         }
         let messages: ControlMessage[];
         let storage: Map<number, TouchControlMessage>;
-        if (event instanceof MouseEvent) {
+        if (this.currentWindow.instanceOf(event, 'MouseEvent')) {
             if (event.target !== this.tag) {
                 return;
             }
-            if (window['WheelEvent'] && event instanceof WheelEvent) {
+            if (this.currentWindow.instanceOf(event, 'WheelEvent')) {
                 messages = this.buildScrollEvent(event, screenInfo);
             } else {
                 storage = this.storedFromMouseEvent;
@@ -75,7 +85,7 @@ export class FeaturedInteractionHandler extends InteractionHandler {
             if (this.over) {
                 this.lastPosition = event;
             }
-        } else if (window['TouchEvent'] && event instanceof TouchEvent) {
+        } else if (this.currentWindow.instanceOf(event, 'TouchEvent')) {
             // TODO: Research drag from out of the target inside it
             if (event.target !== this.tag) {
                 return;

@@ -6,6 +6,7 @@ import Util from '../Util';
 import { TypedEmitter } from '../../common/TypedEmitter';
 import { DisplayInfo } from '../DisplayInfo';
 import defaultVideoSettings from './defaultVideoSettings.json';
+import { CurrentWindow } from '../CurrentWindow';
 
 interface BitrateStat {
     timestamp: number;
@@ -86,7 +87,8 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
     public readonly resizeVideoToBounds: boolean = false;
     protected videoHeight = -1;
     protected videoWidth = -1;
-    public isFocused: boolean;
+    public isFocused = false;
+    private currentWindow?: CurrentWindow;
     public static storageKeyPrefix = 'BaseDecoder';
     public static playerFullName = 'BasePlayer';
     public static playerCodeName = 'baseplayer';
@@ -127,7 +129,17 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
 
         // Set up focus logic
         this.isFocused = false;
-        document.body.addEventListener('click', this.onClick.bind(this));
+        this.onClick = this.onClick.bind(this);
+    }
+
+    public setCurrentWindow(currentWindow: CurrentWindow): void {
+        // Remove the old click handler
+        this.currentWindow?.document.body.removeEventListener('click', this.onClick);
+
+        // Set up the new click handler
+        this.isFocused = false;
+        this.currentWindow = currentWindow;
+        currentWindow.document.body.addEventListener('click', this.onClick);
     }
 
     protected calculateScreenInfoForBounds(videoWidth: number, videoHeight: number): void {
