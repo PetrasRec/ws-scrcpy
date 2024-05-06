@@ -10,6 +10,11 @@ export class CurrentWindow {
         return documentPictureInPicture.window && new CurrentWindow(documentPictureInPicture.window);
     }
 
+    /** Returns the current active window */
+    public static get activeWindow(): CurrentWindow {
+        return this.pipWindow ?? this.main;
+    }
+
     public document: Document;
 
     constructor(public currentWindow: typeof window) {

@@ -491,9 +491,8 @@ export class StreamClientScrcpy
         return this.deviceName;
     }
 
-    public setHandleKeyboardEvents(enabled: boolean, currentWindow?: CurrentWindow): void {
+    public setHandleKeyboardEvents(enabled: boolean, currentWindow: CurrentWindow = CurrentWindow.activeWindow): void {
         this.keyHandlerEnabled = enabled;
-        currentWindow ??= CurrentWindow.pipWindow ?? CurrentWindow.main;
 
         if (enabled) {
             KeyInputHandler.addEventListener(currentWindow, this);
@@ -506,7 +505,7 @@ export class StreamClientScrcpy
         if (event.metaState & KeyEvent.META_META_ON) {
             if (event.keycode === KeyEvent.KEYCODE_V) {
                 const sendClipboard = async () => {
-                    const { currentWindow } = CurrentWindow.pipWindow ?? CurrentWindow.main;
+                    const { currentWindow } = CurrentWindow.activeWindow;
                     try {
                         const text = await currentWindow.navigator.clipboard.readText();
                         this.sendMessage(new TextControlMessage(text));
@@ -546,7 +545,7 @@ export class StreamClientScrcpy
     }
 
     private setTouchListeners(player: BasePlayer): void {
-        const currentWindow = CurrentWindow.pipWindow ?? CurrentWindow.main;
+        const currentWindow = CurrentWindow.activeWindow;
 
         this.touchHandler?.release();
         this.touchHandler = new FeaturedInteractionHandler(player, this, currentWindow);
