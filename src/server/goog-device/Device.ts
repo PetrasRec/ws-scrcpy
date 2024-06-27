@@ -26,6 +26,7 @@ export type DeviceProps = {
     EmulatorUptime: number;
     MemoryUsage: number;
     CpuLoadEstimate: number;
+    Renderer: string;
 };
 
 export class Device extends TypedEmitter<DeviceEvents> {
@@ -70,13 +71,18 @@ export class Device extends TypedEmitter<DeviceEvents> {
 
     private async updateChangingInfo() {
         if (this.connected) {
-            const uptime = await this.getEmulatorUptime();
-            const memoryUsage = await this.getEmulatorMemoryUsage();
-            const cpuLoadEstimate = await this.getCpuLoadEstimate();
+            const [uptime, memoryUsage, cpuLoadEstimate, renderer] = await Promise.all([
+                this.getEmulatorUptime(),
+                this.getEmulatorMemoryUsage(),
+                this.getCpuLoadEstimate(),
+                this.getRenderer(),
+            ]);
+
             this.emit('updatePeriodically', {
                 EmulatorUptime: uptime,
                 MemoryUsage: memoryUsage,
                 CpuLoadEstimate: cpuLoadEstimate,
+                Renderer: renderer,
             });
         }
     }
@@ -421,6 +427,18 @@ export class Device extends TypedEmitter<DeviceEvents> {
         return this.runShellCommandAdbKit("cat /proc/loadavg | awk '{print $1}'").then((output) => {
             return parseFloat(output);
         });
+    }
+
+    private async getRenderer(): Promise<string> {
+        const output = await this.runShellCommandAdbKit("dumpsys SurfaceFlinger | grep 'GLES:'");
+        const [translator, driver] = output.split(', ').slice(1);
+        const device = translator.match(/Translator \((.*)\)/)?.[1] ?? '';
+
+        if (driver.includes('NVIDIA')) {
+            return `GPU (${device})`;
+        } else {
+            return `CPU (${device})`;
+        }
     }
 
     private emitUpdate(setUpdateTime = true): void {
