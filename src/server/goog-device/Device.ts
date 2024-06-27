@@ -71,10 +71,12 @@ export class Device extends TypedEmitter<DeviceEvents> {
 
     private async updateChangingInfo() {
         if (this.connected) {
-            const uptime = await this.getEmulatorUptime();
-            const memoryUsage = await this.getEmulatorMemoryUsage();
-            const cpuLoadEstimate = await this.getCpuLoadEstimate();
-            const renderer = await this.getRenderer();
+            const [uptime, memoryUsage, cpuLoadEstimate, renderer] = await Promise.all([
+                this.getEmulatorUptime(),
+                this.getEmulatorMemoryUsage(),
+                this.getCpuLoadEstimate(),
+                this.getRenderer(),
+            ]);
 
             this.emit('updatePeriodically', {
                 EmulatorUptime: uptime,
