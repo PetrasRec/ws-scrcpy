@@ -107,6 +107,8 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                         element.textContent = `${value} Mb`;
                     } else if (key === 'CpuLoadEstimate') {
                         element.textContent = `${value} cores`;
+                    } else if (key === 'Renderer') {
+                        element.textContent = value;
                     }
                 });
             }
@@ -374,6 +376,10 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 <div class="device-property">
                     CPU load (estimate):
                     <span class="device-value" id="CpuLoadEstimate"></span>
+                </div>
+                <div class="device-property">
+                    Renderer:
+                    <span class="device-value" id="Renderer"></span>
                 </div>
             </div>`.content;
         const services = divHtml.getElementById(servicesId);
