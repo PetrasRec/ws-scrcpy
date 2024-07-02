@@ -4,6 +4,12 @@ const labels = ['player_name', 'user_ldap'];
 
 const playerNames = ['Broadway.js', 'H264 Converter', 'Tiny H264', 'WebCodecs'];
 
+export const renderersGauge = new promClient.Gauge({
+    name: 'scrcpy_emulator_renderers',
+    help: 'Gauge representing which renderer emulators are using',
+    labelNames: ['user_ldap', 'emulator_name', 'renderer_type', 'renderer_device'],
+});
+
 const decodedFramesGauge = new promClient.Gauge({
     name: 'scrcpy_decoded_frames',
     help: 'Number of decoded frames per second',
