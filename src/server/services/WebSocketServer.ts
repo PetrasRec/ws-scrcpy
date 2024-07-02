@@ -11,10 +11,12 @@ import {
     webSocketConnections,
     playerNames,
     webSocketLatency,
+    renderersGauge,
 } from './PromMetrics';
 import { IncomingMessage } from 'http';
 import { ACTION } from '../../common/Action';
 import bunyan from 'bunyan';
+import { ControlCenter } from '../goog-device/services/ControlCenter';
 
 const HEARTBEAT_INTERVAL = 60_000;
 
@@ -62,6 +64,23 @@ export class WebSocketServer implements Service {
         }
 
         return 'localhost';
+    }
+
+    private async setRendererMetric(user_ldap: string, url: URL) {
+        const udid = url.searchParams.get('udid') ?? '';
+        const device = ControlCenter.getInstance().getDevice(udid);
+        const renderer = await device?.getRenderer();
+
+        if (renderer) {
+            renderersGauge
+                .labels({
+                    user_ldap,
+                    emulator_name: udid,
+                    renderer_device: renderer.device,
+                    renderer_type: renderer.type,
+                })
+                .set(1);
+        }
     }
 
     private handleMetricsSocket(ws: WS, request: IncomingMessage) {
@@ -190,6 +209,7 @@ export class WebSocketServer implements Service {
             WebSocketServer.logger.info({ user_ldap, action }, 'WebSocket request');
 
             if (action === ACTION.PROXY_ADB) {
+                this.setRendererMetric(user_ldap, url);
                 this.handleAdbProxy(user_ldap, action, ws);
             }
 

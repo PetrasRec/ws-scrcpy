@@ -429,7 +429,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
         });
     }
 
-    private async getRenderer(): Promise<{ type: string; device: string }> {
+    public async getRenderer(): Promise<{ type: string; device: string }> {
         const output = await this.runShellCommandAdbKit("dumpsys SurfaceFlinger | grep 'GLES:'");
         const [translator, driver] = output.split(', ').slice(1);
         const device = translator.match(/Translator \((.*)\)/)?.[1] ?? '';
