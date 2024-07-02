@@ -82,7 +82,7 @@ export class Device extends TypedEmitter<DeviceEvents> {
                 EmulatorUptime: uptime,
                 MemoryUsage: memoryUsage,
                 CpuLoadEstimate: cpuLoadEstimate,
-                Renderer: renderer,
+                Renderer: `${renderer.type} (${renderer.device})`,
             });
         }
     }
@@ -429,16 +429,15 @@ export class Device extends TypedEmitter<DeviceEvents> {
         });
     }
 
-    private async getRenderer(): Promise<string> {
+    private async getRenderer(): Promise<{ type: string; device: string }> {
         const output = await this.runShellCommandAdbKit("dumpsys SurfaceFlinger | grep 'GLES:'");
         const [translator, driver] = output.split(', ').slice(1);
         const device = translator.match(/Translator \((.*)\)/)?.[1] ?? '';
 
-        if (driver.includes('NVIDIA')) {
-            return `GPU (${device})`;
-        } else {
-            return `CPU (${device})`;
-        }
+        return {
+            type: driver.includes('NVIDIA') ? 'GPU' : 'CPU',
+            device,
+        };
     }
 
     private emitUpdate(setUpdateTime = true): void {
