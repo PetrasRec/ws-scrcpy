@@ -20,6 +20,7 @@ import { Tool } from '../../client/Tool';
 import { ConfigureScrcpy } from './ConfigureScrcpy';
 import { ParamsStreamScrcpy } from '../../../types/ParamsStreamScrcpy';
 import moment from 'moment';
+import { Flipper } from './Flipper';
 
 type Field = keyof GoogDeviceDescriptor | ((descriptor: GoogDeviceDescriptor) => string);
 type DescriptionColumn = { title: string; field: Field };
@@ -398,6 +399,10 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 }
             }
         });
+
+        services.appendChild(
+            Flipper.createEntryForDeviceList(device, blockClass)
+        )
 
         const div = document.createElement('div');
         div.appendChild(divHtml);
