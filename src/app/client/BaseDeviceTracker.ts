@@ -178,7 +178,6 @@ export abstract class BaseDeviceTracker<DD extends BaseDeviceDescriptor, TE> ext
 
         const block = this.getOrCreateTrackerBlock(tbody);
         block.innerHTML = '';
-        console.log("building table", data);
         if (!data.length) {
             this.buildDeviceNotFoundCell(block);
             return;

@@ -156,15 +156,10 @@ export class Device extends TypedEmitter<DeviceEvents> {
     }
 
     public async runShellCommandAdbKit(command: string): Promise<string> {
-        try {
-            return this.client
-                .shell(this.udid, command)
-                .then(AdbExtended.util.readAll)
-                .then((output: Buffer) => output.toString().trim());
-        } catch (error: any) {
-            console.error(this.TAG, `Error runShellCommandAdbKit: ${error.message}`);
-            throw error;
-        }
+        return this.client
+            .shell(this.udid, command)
+            .then(AdbExtended.util.readAll)
+            .then((output: Buffer) => output.toString().trim());
     }
 
     public async push(contents: string, path: string): Promise<PushTransfer> {
