@@ -156,10 +156,15 @@ export class Device extends TypedEmitter<DeviceEvents> {
     }
 
     public async runShellCommandAdbKit(command: string): Promise<string> {
-        return this.client
-            .shell(this.udid, command)
-            .then(AdbExtended.util.readAll)
-            .then((output: Buffer) => output.toString().trim());
+        try {
+            return this.client
+                .shell(this.udid, command)
+                .then(AdbExtended.util.readAll)
+                .then((output: Buffer) => output.toString().trim());
+        } catch (error: any) {
+            console.error(this.TAG, `Error runShellCommandAdbKit: ${error.message}`);
+            throw error;
+        }
     }
 
     public async push(contents: string, path: string): Promise<PushTransfer> {
@@ -432,6 +437,13 @@ export class Device extends TypedEmitter<DeviceEvents> {
     public async getRenderer(): Promise<{ type: string; device: string }> {
         const output = await this.runShellCommandAdbKit("dumpsys SurfaceFlinger | grep 'GLES:'");
         const [translator, driver] = output.split(', ').slice(1);
+        if (!translator || !driver) {
+            return {
+                type: 'unknown',
+                device: 'unknown',
+            };
+        }
+
         const device = translator.match(/Translator \((.*)\)/)?.[1] ?? '';
 
         return {

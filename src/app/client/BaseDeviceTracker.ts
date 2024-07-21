@@ -94,15 +94,103 @@ export abstract class BaseDeviceTracker<DD extends BaseDeviceDescriptor, TE> ext
         return ++this.messageId;
     }
 
+    protected buildDeviceNotFoundCell(root: Element): void {
+        const cell = document.createElement('div');
+        cell.style.padding = '20px';
+        cell.style.display = 'flex';
+        cell.style.flexDirection = 'column';
+        cell.style.alignItems = 'center';
+        const container = document.createElement('div');
+
+        const message = document.createElement('span');
+        message.textContent = 'Emulator not found. Please wait while we attempt to establish a connection...';
+        message.style.fontSize = '16px';
+        message.style.marginBottom = '10px';
+
+        const spinner = document.createElement('span');
+        spinner.setAttribute('class', 'loader');
+
+        container.appendChild(message);
+        container.appendChild(spinner);
+
+        cell.appendChild(container);
+        root.appendChild(cell);
+    }
+
+    protected buildDeviceNotReadyCell(root: Element): void {
+        const data = this.descriptors;
+
+        if (data.length === 0) {
+            return;
+        }
+
+        const device = data[0];
+        const container = document.createElement('div');
+        container.style.padding = '20px';
+        container.style.textAlign = 'center';
+        container.style.border = '1px solid #ccc';
+        container.style.borderRadius = '8px';
+        container.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+
+        const message = document.createElement('span');
+        message.textContent = 'Emulator is not ready. Please wait while we attempt to establish a connection...';
+        message.style.fontSize = '18px';
+        message.style.marginBottom = '20px';
+        message.style.display = 'block';
+
+        const spinner = document.createElement('span');
+        spinner.setAttribute('class', 'loader');
+        spinner.style.display = 'inline-block';
+        spinner.style.marginBottom = '20px';
+
+        container.appendChild(message);
+        container.appendChild(spinner);
+
+        const deviceInfo = document.createElement('div');
+        deviceInfo.style.marginTop = '20px';
+
+        const details = `
+            <p><strong>Emulator ADB State:</strong> <span style="color: red;">${device.state}</span></p>
+        `;
+        deviceInfo.innerHTML += details;
+
+        const adbHelperMessage = document.createElement('p');
+        if (device.state === 'offline') {
+            adbHelperMessage.textContent = 'The device is offline. Please wait while we establish a connection.';
+        } else if (device.state === 'unauthorized') {
+            adbHelperMessage.textContent = 'The device is unauthorized. Please wait while we establish a connection.';
+        } else {
+            adbHelperMessage.textContent = 'The device is currently not connected. Please wait while we establish a connection.';
+        }
+        deviceInfo.appendChild(adbHelperMessage);
+
+        const finalMessage = document.createElement('p');
+        finalMessage.textContent = 'If the issue persists, please restart the emulator.';
+
+        container.appendChild(deviceInfo);
+        root.appendChild(container);
+    }
+
     protected buildDeviceTable(): void {
         const data = this.descriptors;
         const devices = this.getOrCreateTableHolder();
         const tbody = this.getOrBuildTableBody(devices);
 
         const block = this.getOrCreateTrackerBlock(tbody);
-        data.forEach((item) => {
-            this.buildDeviceRow(block, item);
-        });
+        block.innerHTML = '';
+        console.log("building table", data);
+        if (!data.length) {
+            this.buildDeviceNotFoundCell(block);
+            return;
+        }
+
+        const emulator = data.find((item) => item.state === 'device');
+        if (!emulator) {
+            this.buildDeviceNotReadyCell(block);
+            return;
+        }
+
+        this.buildDeviceRow(block, emulator);
     }
 
     private getOrCreateTrackerBlock(parent: Element): Element {
@@ -178,6 +266,7 @@ export abstract class BaseDeviceTracker<DD extends BaseDeviceDescriptor, TE> ext
             devices = document.createElement('div');
             devices.id = id;
             devices.className = 'table-wrapper';
+            devices.style.maxWidth = '900px';
             document.body.appendChild(devices);
         }
         return devices;

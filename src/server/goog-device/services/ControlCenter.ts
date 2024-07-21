@@ -48,9 +48,12 @@ export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor, Devic
         }
         console.log(`Device tracker is down. Will try to restart in ${this.waitAfterError}ms`);
         this.restartTimeoutId = setTimeout(() => {
+            console.log(`Restarting device tracker`);
             this.stopTracker();
             this.waitAfterError *= 1.2;
             this.init();
+            clearTimeout(this.restartTimeoutId);
+            this.restartTimeoutId = undefined;
         }, this.waitAfterError);
     };
 
