@@ -372,7 +372,6 @@ export class AdbUtils {
         return props['ro.product.model'] || 'Unknown device';
     }
 
-
     public static async deviceHealthCheck(): Promise<void> {
         const client = AdbExtended.createClient();
         const devices = await client.listDevices();

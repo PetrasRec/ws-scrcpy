@@ -178,6 +178,7 @@ export abstract class BaseDeviceTracker<DD extends BaseDeviceDescriptor, TE> ext
             devices = document.createElement('div');
             devices.id = id;
             devices.className = 'table-wrapper';
+            devices.style.maxWidth = '900px';
             document.body.appendChild(devices);
         }
         return devices;

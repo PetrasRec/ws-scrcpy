@@ -95,12 +95,15 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                 res.end(await promClient.register.metrics());
             });
 
+            // Define a new route for health check
             this.mainApp.get('/health', async (_, res) => {
                 AdbUtils.deviceHealthCheck()
                     .then(() => {
+                        HttpServer.logger.info({}, 'Health check OK');
                         res.status(200).send('OK');
                     })
                     .catch((err: Error) => {
+                        HttpServer.logger.info({ error: err?.message }, 'Health failed');
                         res.status(503).send({ error: err.message });
                     });
             });
