@@ -18,6 +18,7 @@ import fs from 'fs';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import bunyan from 'bunyan';
+import { Device } from '@dead50f7/adbkit/lib/Device';
 
 type IncomingMessage = {
     statusCode?: number;
@@ -369,6 +370,26 @@ export class AdbUtils {
         const client = AdbExtended.createClient();
         const props = await client.getProperties(serial);
         return props['ro.product.model'] || 'Unknown device';
+    }
+
+
+    public static async deviceHealthCheck(): Promise<void> {
+        const client = AdbExtended.createClient();
+        const devices = await client.listDevices();
+        if (devices.length === 0) {
+            throw new Error('no devices connected');
+        }
+
+        const device = devices[0]; // Assumes only one device is connected
+
+        if (device.type !== 'device') {
+            throw new Error(`bad device status: ${device.type}`);
+        }
+
+        const props = await client.getProperties(device.id);
+        if (props['init.svc.bootanim'] !== 'stopped' || props['sys.boot_completed'] !== '1') {
+            throw new Error('emulator is still booting.');
+        }
     }
 
     public static async downloadAndInstallAPK(url: string): Promise<void> {
