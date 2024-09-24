@@ -95,6 +95,19 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                 res.end(await promClient.register.metrics());
             });
 
+            // Define a new route for health check
+            this.mainApp.get('/health', async (_, res) => {
+                AdbUtils.deviceHealthCheck()
+                    .then(() => {
+                        HttpServer.logger.info({}, 'Health check OK');
+                        res.status(200).send('OK');
+                    })
+                    .catch((err: Error) => {
+                        HttpServer.logger.info({ error: err?.message }, 'Health failed');
+                        res.status(503).send({ error: err.message });
+                    });
+            });
+
             this.mainApp.post('/restart-tcp', async (req) => {
                 // TCP connection for some reason gets corrupted after prolonged idling or after restart
                 // adb tcpip 5555 fixes this issue, for now providing temporary workaround

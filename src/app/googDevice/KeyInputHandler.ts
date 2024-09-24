@@ -58,6 +58,7 @@ export class KeyInputHandler {
             repeatCount,
             metaState,
         );
+
         KeyInputHandler.listeners.forEach((listener) => {
             listener.onKeyEvent(controlMessage);
         });
