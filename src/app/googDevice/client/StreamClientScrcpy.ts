@@ -502,6 +502,15 @@ export class StreamClientScrcpy
     }
 
     public onKeyEvent(event: KeyCodeControlMessage): void {
+        // Ignore left meta key (which is Cmd on macOS)
+        // While copy/pasting text this key goes to home screen. This is not expected behavior.
+        // This is probably set inside scrcpy image itself, but tested it against scrcpy cli and that key did nothing
+        // So for now will just ignore this key
+        // All emulator shortcuts with CMD key are combined with some other key
+        if (event.keycode === KeyEvent.KEYCODE_META_LEFT) {
+            return;
+        }
+
         if (event.metaState & KeyEvent.META_META_ON) {
             if (event.keycode === KeyEvent.KEYCODE_V) {
                 const sendClipboard = async () => {

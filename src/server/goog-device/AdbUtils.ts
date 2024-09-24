@@ -18,7 +18,6 @@ import fs from 'fs';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 import bunyan from 'bunyan';
-import { Device } from '@dead50f7/adbkit/lib/Device';
 
 type IncomingMessage = {
     statusCode?: number;
