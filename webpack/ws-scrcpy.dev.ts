@@ -4,8 +4,15 @@ import BrowserSyncPlugin from 'browser-sync-webpack-plugin';
 import { Config } from '../src/server/Config';
 
 const devOpts: webpack.Configuration = {
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
     mode: 'development',
+    stats: {
+        all: false,
+        errors: true,
+        warnings: true,
+        errorDetails: true,
+        colors: true,
+    },
 };
 
 const front = () => {

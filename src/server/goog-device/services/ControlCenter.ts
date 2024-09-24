@@ -11,11 +11,12 @@ import { ControlCenterCommand } from '../../../common/ControlCenterCommand';
 import * as os from 'os';
 import * as crypto from 'crypto';
 import { DeviceState } from '../../../common/DeviceState';
+import bunyan from 'bunyan';
 
 export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor, DeviceProps> implements Service {
     private static readonly defaultWaitAfterError = 1000;
     private static instance?: ControlCenter;
-
+    private static logger = bunyan.createLogger({ name: 'ControlCenter' });
     private initialized = false;
     private client: AdbKitClient = AdbExtended.createClient();
     private tracker?: Tracker;
@@ -46,11 +47,15 @@ export class ControlCenter extends BaseControlCenter<GoogDeviceDescriptor, Devic
         if (this.restartTimeoutId) {
             return;
         }
-        console.log(`Device tracker is down. Will try to restart in ${this.waitAfterError}ms`);
+
+        ControlCenter.logger.error({}, `Device tracker is down. Will try to restart in ${this.waitAfterError}ms`);
         this.restartTimeoutId = setTimeout(() => {
+            ControlCenter.logger.info({}, 'Restarting device tracker');
             this.stopTracker();
             this.waitAfterError *= 1.2;
             this.init();
+            clearTimeout(this.restartTimeoutId);
+            this.restartTimeoutId = undefined;
         }, this.waitAfterError);
     };
 
