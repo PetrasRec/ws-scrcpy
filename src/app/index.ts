@@ -1,5 +1,8 @@
 import '../style/app.css';
 import { StreamClientScrcpy } from './googDevice/client/StreamClientScrcpy';
+import { ParamsStreamScrcpy } from '../types/ParamsStreamScrcpy';
+import { SERVER_PORT } from '../common/Constants';
+import { ACTION } from '../common/Action';
 import { HostTracker } from './client/HostTracker';
 import { Tool } from './client/Tool';
 
@@ -27,6 +30,19 @@ window.onload = async function (): Promise<void> {
     const { WebCodecsPlayer } = await import('./player/WebCodecsPlayer');
     StreamClientScrcpy.registerPlayer(WebCodecsPlayer);
     /// #endif
+
+    // If we're inside an iframe, just display the stream
+    // Currently this is hardcoded to the emulator
+    if (window.self !== window.top) {
+        const uuid = 'emulator-5554';
+        StreamClientScrcpy.start({
+            action: StreamClientScrcpy.ACTION,
+            udid: uuid,
+            player: 'broadway',
+            ws: `ws://localhost:8000/?action=${ACTION.PROXY_ADB}&remote=tcp%3A${SERVER_PORT.toString(10)}&udid=${uuid}`,
+        } as ParamsStreamScrcpy);
+        return;
+    }
 
     if (action === StreamClientScrcpy.ACTION && typeof parsedQuery.get('udid') === 'string') {
         StreamClientScrcpy.start(parsedQuery);

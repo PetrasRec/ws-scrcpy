@@ -688,6 +688,7 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
             udid: this.udid,
             fitToScreen,
         };
+
         ConfigureScrcpy.streamClientScrcpy = StreamClientScrcpy.start(
             params,
             this.streamReceiver,
