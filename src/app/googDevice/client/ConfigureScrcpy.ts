@@ -436,8 +436,13 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
         const blockClass = 'dialog-block';
         const background = document.createElement('div');
         background.classList.add('dialog-background', dialogName);
+        if (window.top !== window.self) {
+            background.classList.add('hidden');
+        }
+
         const dialogContainer = (this.dialogContainer = document.createElement('div'));
         dialogContainer.classList.add('dialog-container', dialogName);
+
         const dialogHeader = document.createElement('div');
         dialogHeader.classList.add('dialog-header', dialogName, 'control-wrapper');
         const backButton = new ToolBoxButton('Back', SvgImage.Icon.ARROW_BACK);

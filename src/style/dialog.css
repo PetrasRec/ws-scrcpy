@@ -17,6 +17,10 @@
     z-index: 3;
 }
 
+.dialog-background.hidden {
+    display: none;
+}
+
 .dialog-container {
     font-family: monospace;
     width: 75%;
@@ -73,6 +77,7 @@
     height: 0;
     padding: 0;
 }
+
 
 .dialog-body.visible {
     height: calc(
