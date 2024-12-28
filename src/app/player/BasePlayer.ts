@@ -550,7 +550,9 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
         const focused = event.target === this.touchableCanvas;
 
         this.isFocused = focused;
-        this.touchableCanvas.classList.toggle('focused', focused);
+        if (window.top === window.self) {
+            this.touchableCanvas.classList.toggle('focused', focused);
+        }
     }
 
     public setShowQualityStats(value: boolean): void {

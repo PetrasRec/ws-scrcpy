@@ -105,9 +105,11 @@ body.stream {
     max-height: 100%;
     max-width: 100%;
     background-color: #000000;
-    margin: 5px;
 }
 
+.video.glow {
+    margin: 5px;
+}
 
 .control-buttons-list {
     float: right;

@@ -96,13 +96,14 @@ export class GoogToolBox extends ToolBox {
         });
         elements.push(keyboard);
 
-        const popout = new ToolBoxCheckbox('Pop out', SvgImage.Icon.POP_OUT, 'popout', undefined, false);
-        popout.addEventListener('click', (_, el) => {
-            const element = el.getElement();
-            ConfigureScrcpy.streamClientScrcpy?.onPopOutClick(element.checked);
-        });
-        elements.push(popout);
-
+        if (window.top === window.self) {
+            const popout = new ToolBoxCheckbox('Pop out', SvgImage.Icon.POP_OUT, 'popout', undefined, false);
+            popout.addEventListener('click', (_, el) => {
+                const element = el.getElement();
+                ConfigureScrcpy.streamClientScrcpy?.onPopOutClick(element.checked);
+            });
+            elements.push(popout);
+        }
         if (moreBox) {
             const displayId = player.getVideoSettings().displayId;
             const id = `show_more_${udid}_${playerName}_${displayId}`;

@@ -455,6 +455,9 @@ export class StreamClientScrcpy
         deviceView.appendChild(this.controlButtons);
         const video = document.createElement('div');
         video.className = 'video';
+        if (window.self === window.top) {
+            video.classList.add('glow');
+        }
         deviceView.appendChild(video);
         deviceView.appendChild(moreBox);
         player.setParent(video);
