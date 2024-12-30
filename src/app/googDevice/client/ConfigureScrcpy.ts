@@ -15,6 +15,7 @@ import { Attribute } from '../../Attribute';
 import { StreamReceiverScrcpy } from './StreamReceiverScrcpy';
 import { ParamsStreamScrcpy } from '../../../types/ParamsStreamScrcpy';
 import { BaseClient } from '../../client/BaseClient';
+import { isServedInIframe } from 'src/common/Iframe';
 
 interface ConfigureScrcpyEvents {
     closed: { dialog: ConfigureScrcpy; result: boolean };
@@ -436,7 +437,7 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
         const blockClass = 'dialog-block';
         const background = document.createElement('div');
         background.classList.add('dialog-background', dialogName);
-        if (window.top !== window.self) {
+        if (isServedInIframe()) {
             background.classList.add('hidden');
         }
 

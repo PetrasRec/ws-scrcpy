@@ -33,6 +33,7 @@ import { StreamReceiverScrcpy } from './StreamReceiverScrcpy';
 import { ParamsDeviceTracker } from '../../../types/ParamsDeviceTracker';
 import { ScrcpyFilePushStream } from '../filePush/ScrcpyFilePushStream';
 import { CurrentWindow } from '../../CurrentWindow';
+import { isServedInIframe } from 'src/common/Iframe';
 
 type StartParams = {
     udid: string;
@@ -455,7 +456,7 @@ export class StreamClientScrcpy
         deviceView.appendChild(this.controlButtons);
         const video = document.createElement('div');
         video.className = 'video';
-        if (window.self === window.top) {
+        if (!isServedInIframe()) {
             video.classList.add('glow');
         }
         deviceView.appendChild(video);

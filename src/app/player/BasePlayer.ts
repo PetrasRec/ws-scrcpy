@@ -7,6 +7,7 @@ import { TypedEmitter } from '../../common/TypedEmitter';
 import { DisplayInfo } from '../DisplayInfo';
 import defaultVideoSettings from './defaultVideoSettings.json';
 import { CurrentWindow } from '../CurrentWindow';
+import { isServedInIframe } from 'src/common/Iframe';
 
 interface BitrateStat {
     timestamp: number;
@@ -550,7 +551,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
         const focused = event.target === this.touchableCanvas;
 
         this.isFocused = focused;
-        if (window.top === window.self) {
+        if (!isServedInIframe()) {
             this.touchableCanvas.classList.toggle('focused', focused);
         }
     }

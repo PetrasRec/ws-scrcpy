@@ -8,6 +8,7 @@ import { ParamsDeviceTracker } from '../../types/ParamsDeviceTracker';
 import { HostItem } from '../../types/Configuration';
 import { Tool } from './Tool';
 import Util from '../Util';
+import { isServedInIframe } from 'src/common/Iframe';
 
 const TAG = '[BaseDeviceTracker]';
 
@@ -179,7 +180,7 @@ export abstract class BaseDeviceTracker<DD extends BaseDeviceDescriptor, TE> ext
             devices.id = id;
             devices.className = 'table-wrapper';
             devices.style.maxWidth = '900px';
-            if (window.self !== window.top) {
+            if (isServedInIframe()) {
                 devices.style.display = 'none';
             }
             document.body.appendChild(devices);
