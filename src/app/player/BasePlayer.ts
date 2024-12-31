@@ -410,7 +410,6 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
             );
         }
         this.resetStats();
-        console.log('new video settings', videoSettings);
         this.emit('video-settings', VideoSettings.copy(videoSettings));
     }
 

@@ -264,7 +264,6 @@ export class StreamClientScrcpy
             const newBounds = this.getMaxSize();
             if (newBounds) {
                 currentSettings = StreamClientScrcpy.createVideoSettingsWithBounds(currentSettings, newBounds);
-                console.log('set 2?');
                 this.player.setVideoSettings(currentSettings, this.fitToScreen, false);
             }
         }

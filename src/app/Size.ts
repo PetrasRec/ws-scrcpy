@@ -8,7 +8,6 @@ export default class Size {
     public readonly h: number;
 
     constructor(readonly width: number, readonly height: number) {
-        console.log('Size constructor', width, height);
         this.w = width;
         this.h = height;
     }
