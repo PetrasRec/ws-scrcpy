@@ -7,7 +7,7 @@ import { TypedEmitter } from '../../common/TypedEmitter';
 import { DisplayInfo } from '../DisplayInfo';
 import defaultVideoSettings from './defaultVideoSettings.json';
 import { CurrentWindow } from '../CurrentWindow';
-import { isServedInIframe } from 'src/common/Iframe';
+import { isServedInIframe } from '../../common/Iframe';
 
 interface BitrateStat {
     timestamp: number;
@@ -125,8 +125,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
         };
 
         // Set video settings
-        const preferred = this.getPreferredVideoSetting();
-        this.videoSettings = BasePlayer.getVideoSettingFromStorage(preferred, this.storageKeyPrefix, udid, displayInfo);
+        this.videoSettings = BasePlayer.loadVideoSettings(udid, displayInfo);
 
         // Set up focus logic
         this.isFocused = false;
@@ -246,6 +245,26 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
             console.error(`[${this.name}]`, 'Failed to parse', saved);
         }
         return parsedValue;
+    }
+
+    static getQueryParameterVideoSettings(preferred: VideoSettings, queryParams: URLSearchParams): VideoSettings {
+        const widthParam = queryParams.get('width');
+        const heightParam = queryParams.get('height');
+
+        let bounds: Size | null = null;
+
+        if (widthParam && heightParam) {
+            const width = parseInt(widthParam, 10);
+            const height = parseInt(heightParam, 10);
+            if (!isNaN(width) && !isNaN(height) && width > 0 && height > 0) {
+                bounds = new Size(width, height);
+            }
+        }
+
+        return new VideoSettings({
+            ...preferred,
+            bounds: bounds !== null ? bounds : preferred.bounds,
+        });
     }
 
     public static getVideoSettingFromStorage(
@@ -391,6 +410,7 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
             );
         }
         this.resetStats();
+        console.log('new video settings', videoSettings);
         this.emit('video-settings', VideoSettings.copy(videoSettings));
     }
 
@@ -586,7 +606,19 @@ export abstract class BasePlayer extends TypedEmitter<PlayerEvents> {
     public abstract loadVideoSettings(): VideoSettings;
 
     public static loadVideoSettings(udid: string, displayInfo?: DisplayInfo): VideoSettings {
-        return this.getVideoSettingFromStorage(this.preferredVideoSettings, this.storageKeyPrefix, udid, displayInfo);
+        if (isServedInIframe()) {
+            return this.getQueryParameterVideoSettings(
+                this.preferredVideoSettings,
+                new URLSearchParams(window.location.search),
+            );
+        } else {
+            return this.getVideoSettingFromStorage(
+                this.preferredVideoSettings,
+                this.storageKeyPrefix,
+                udid,
+                displayInfo,
+            );
+        }
     }
 
     public static getFitToScreenStatus(udid: string, displayInfo?: DisplayInfo): boolean {

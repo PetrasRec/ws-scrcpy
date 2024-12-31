@@ -15,7 +15,7 @@ import { Attribute } from '../../Attribute';
 import { StreamReceiverScrcpy } from './StreamReceiverScrcpy';
 import { ParamsStreamScrcpy } from '../../../types/ParamsStreamScrcpy';
 import { BaseClient } from '../../client/BaseClient';
-import { isServedInIframe } from 'src/common/Iframe';
+import { isServedInIframe } from '../../../common/Iframe';
 
 interface ConfigureScrcpyEvents {
     closed: { dialog: ConfigureScrcpy; result: boolean };

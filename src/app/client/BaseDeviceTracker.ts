@@ -8,7 +8,7 @@ import { ParamsDeviceTracker } from '../../types/ParamsDeviceTracker';
 import { HostItem } from '../../types/Configuration';
 import { Tool } from './Tool';
 import Util from '../Util';
-import { isServedInIframe } from 'src/common/Iframe';
+import { isServedInIframe } from '../../common/Iframe';
 
 const TAG = '[BaseDeviceTracker]';
 

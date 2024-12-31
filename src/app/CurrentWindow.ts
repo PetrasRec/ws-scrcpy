@@ -47,7 +47,6 @@ export class CurrentWindow {
     public resizeInner(width: number, height: number): void {
         const deltaX = this.currentWindow.outerWidth - this.currentWindow.innerWidth;
         const deltaY = this.currentWindow.outerHeight - this.currentWindow.innerHeight;
-
         this.currentWindow.resizeTo(width + deltaX, height + deltaY);
     }
 

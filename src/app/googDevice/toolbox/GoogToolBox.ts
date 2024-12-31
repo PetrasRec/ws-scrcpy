@@ -8,7 +8,7 @@ import { ToolBoxCheckbox } from '../../toolbox/ToolBoxCheckbox';
 import { StreamClientScrcpy } from '../client/StreamClientScrcpy';
 import { BasePlayer } from '../../player/BasePlayer';
 import { ConfigureScrcpy } from '../client/ConfigureScrcpy';
-import { isServedInIframe } from 'src/common/Iframe';
+import { isServedInIframe } from '../../../common/Iframe';
 
 const BUTTONS = [
     {
