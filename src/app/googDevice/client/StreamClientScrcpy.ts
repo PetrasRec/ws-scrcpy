@@ -33,6 +33,7 @@ import { StreamReceiverScrcpy } from './StreamReceiverScrcpy';
 import { ParamsDeviceTracker } from '../../../types/ParamsDeviceTracker';
 import { ScrcpyFilePushStream } from '../filePush/ScrcpyFilePushStream';
 import { CurrentWindow } from '../../CurrentWindow';
+import { isServedInIframe } from '../../../common/Iframe';
 
 type StartParams = {
     udid: string;
@@ -240,6 +241,7 @@ export class StreamClientScrcpy
         if (!this.player) {
             return;
         }
+
         let currentSettings = this.player.getVideoSettings();
         const displayId = currentSettings.displayId;
         const info = infoArray.find((value) => {
@@ -251,7 +253,9 @@ export class StreamClientScrcpy
         if (this.player.getState() === BasePlayer.STATE.PAUSED) {
             this.player.play();
         }
-        const { videoSettings, screenInfo } = info;
+        const { screenInfo } = info;
+        const videoSettings = isServedInIframe() ? currentSettings : info.videoSettings;
+
         this.player.setDisplayInfo(info.displayInfo);
         if (typeof this.fitToScreen !== 'boolean') {
             this.fitToScreen = this.player.getFitToScreenStatus();
@@ -455,6 +459,9 @@ export class StreamClientScrcpy
         deviceView.appendChild(this.controlButtons);
         const video = document.createElement('div');
         video.className = 'video';
+        if (!isServedInIframe()) {
+            video.classList.add('glow');
+        }
         deviceView.appendChild(video);
         deviceView.appendChild(moreBox);
         player.setParent(video);

@@ -15,6 +15,7 @@ import { Attribute } from '../../Attribute';
 import { StreamReceiverScrcpy } from './StreamReceiverScrcpy';
 import { ParamsStreamScrcpy } from '../../../types/ParamsStreamScrcpy';
 import { BaseClient } from '../../client/BaseClient';
+import { isServedInIframe } from '../../../common/Iframe';
 
 interface ConfigureScrcpyEvents {
     closed: { dialog: ConfigureScrcpy; result: boolean };
@@ -436,8 +437,13 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
         const blockClass = 'dialog-block';
         const background = document.createElement('div');
         background.classList.add('dialog-background', dialogName);
+        if (isServedInIframe()) {
+            background.classList.add('hidden');
+        }
+
         const dialogContainer = (this.dialogContainer = document.createElement('div'));
         dialogContainer.classList.add('dialog-container', dialogName);
+
         const dialogHeader = document.createElement('div');
         dialogHeader.classList.add('dialog-header', dialogName, 'control-wrapper');
         const backButton = new ToolBoxButton('Back', SvgImage.Icon.ARROW_BACK);
@@ -688,6 +694,7 @@ export class ConfigureScrcpy extends BaseClient<ParamsStreamScrcpy, ConfigureScr
             udid: this.udid,
             fitToScreen,
         };
+
         ConfigureScrcpy.streamClientScrcpy = StreamClientScrcpy.start(
             params,
             this.streamReceiver,

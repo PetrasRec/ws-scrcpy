@@ -8,6 +8,7 @@ import { ToolBoxCheckbox } from '../../toolbox/ToolBoxCheckbox';
 import { StreamClientScrcpy } from '../client/StreamClientScrcpy';
 import { BasePlayer } from '../../player/BasePlayer';
 import { ConfigureScrcpy } from '../client/ConfigureScrcpy';
+import { isServedInIframe } from '../../../common/Iframe';
 
 const BUTTONS = [
     {
@@ -96,12 +97,14 @@ export class GoogToolBox extends ToolBox {
         });
         elements.push(keyboard);
 
-        const popout = new ToolBoxCheckbox('Pop out', SvgImage.Icon.POP_OUT, 'popout', undefined, false);
-        popout.addEventListener('click', (_, el) => {
-            const element = el.getElement();
-            ConfigureScrcpy.streamClientScrcpy?.onPopOutClick(element.checked);
-        });
-        elements.push(popout);
+        if (!isServedInIframe()) {
+            const popout = new ToolBoxCheckbox('Pop out', SvgImage.Icon.POP_OUT, 'popout', undefined, false);
+            popout.addEventListener('click', (_, el) => {
+                const element = el.getElement();
+                ConfigureScrcpy.streamClientScrcpy?.onPopOutClick(element.checked);
+            });
+            elements.push(popout);
+        }
 
         if (moreBox) {
             const displayId = player.getVideoSettings().displayId;
