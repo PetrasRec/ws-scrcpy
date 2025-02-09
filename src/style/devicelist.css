@@ -338,6 +338,28 @@ body.list #device_list_menu {
     background-color: hsl(0, 0%, 25%);
 }
 
+.button-primary {
+    display: inline-block;
+    padding: 8px 8px;
+    background-color: var(--button-bg-color);
+    color: var(--button-text-color);
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button-primary:hover {
+    background-color: var(--button-bg-hover-color);
+}
+
+.button-primary:disabled {
+    background-color: hsl(0, 0%, 50%);
+    color: hsl(0, 0%, 70%);
+    cursor: not-allowed;
+}
+
 .url-button {
     display: inline-block;
     background-color: var(--button-bg-color);

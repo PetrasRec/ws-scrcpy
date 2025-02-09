@@ -21,6 +21,7 @@ import { ConfigureScrcpy } from './ConfigureScrcpy';
 import { ParamsStreamScrcpy } from '../../../types/ParamsStreamScrcpy';
 import moment from 'moment';
 import { Flipper } from './Flipper';
+import * as L from 'leaflet';
 
 type Field = keyof GoogDeviceDescriptor | ((descriptor: GoogDeviceDescriptor) => string);
 type DescriptionColumn = { title: string; field: Field };
@@ -50,6 +51,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
     private AdbShellTab?: HTMLDivElement;
     private AdvancedSettingsTab?: HTMLDivElement;
     private AdbInstallTab?: HTMLDivElement;
+    private GPSMockingTab?: HTMLDivElement;
     private ShellClient?: ShellClient;
 
     public static start(hostItem: HostItem): DeviceTracker {
@@ -400,9 +402,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             }
         });
 
-        services.appendChild(
-            Flipper.createEntryForDeviceList(device, blockClass)
-        )
+        services.appendChild(Flipper.createEntryForDeviceList(device, blockClass));
 
         const div = document.createElement('div');
         div.appendChild(divHtml);
@@ -419,6 +419,77 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         };
 
         this.ShellClient = ShellClient.start(shellParams, this.params);
+    }
+
+    private buildGPSMockingTab(): void {
+        const divHtml = html`
+            <div>
+                <label for="lat-input">Latitude:</label>
+                <input type="text" id="lat-input" placeholder="Enter latitude" />
+
+                <label for="lng-input">Longitude:</label>
+                <input type="text" id="lng-input" placeholder="Enter longitude" />
+
+                <button id="mock-btn" class="button-primary">Mock</button>
+            </div>
+            <hr class="full-line" />
+            <div id="map" style="width: 100%; height: 400px;"></div>
+            <p id="coordinates">Click on the map to select a location.</p>
+        `.content;
+
+        const div = document.createElement('div');
+        div.appendChild(divHtml);
+        this.GPSMockingTab = div;
+    }
+
+    private initMap(): void {
+        const map = L.map('map', { attributionControl: false }).setView([52.3676, 4.9041], 13); // Centered on Amsterdam
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        let marker: L.Marker | null = null;
+
+        const updateInputs = (lat: number, lng: number) => {
+            (document.getElementById('lat-input') as HTMLInputElement).value = lat.toFixed(6);
+            (document.getElementById('lng-input') as HTMLInputElement).value = lng.toFixed(6);
+        };
+
+        const addMarker = (lat: number, lng: number) => {
+            // Remove previous marker
+            if (marker) {
+                marker.remove();
+            }
+
+            // Add new marker
+            marker = L.marker([lat, lng])
+                .addTo(map)
+                .bindPopup(`Mocked Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`)
+                .openPopup();
+
+            updateInputs(lat, lng);
+        };
+
+        map.on('click', (e: L.LeafletMouseEvent) => {
+            const { lat, lng } = e.latlng;
+            addMarker(lat, lng);
+        });
+
+        // Handle "Mock" button click to manually place a marker
+        document?.getElementById('mock-btn')?.addEventListener('click', () => {
+            const latInput = document.getElementById('lat-input') as HTMLInputElement;
+            const lngInput = document.getElementById('lng-input') as HTMLInputElement;
+
+            const lat = parseFloat(latInput.value);
+            const lng = parseFloat(lngInput.value);
+
+            if (isNaN(lat) || isNaN(lng)) {
+                alert('Please enter valid latitude and longitude values.');
+                return;
+            }
+
+            addMarker(lat, lng);
+            map.setView([lat, lng], 13);
+        });
     }
 
     private buildAdbInstallTab(): void {
@@ -505,6 +576,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             row = html`<div class="tabs">
                     <button class="tab" id="generalTab">General</button>
                     <button class="tab" id="adbShellTab">ADB Shell</button>
+                    <button class="tab" id="gpsMockingTab">GPS Mocking</button>
                     <button class="tab" id="adbInstallTab">Install apps</button>
                     <button class="tab" id="advancedSettingsTab">Advanced settings</button>
                 </div>
@@ -512,6 +584,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 <div class="device ${isActive ? 'active' : 'not-active'}">
                     <div class="device-stats">
                         <div class="tab-content" id="generalTabContent"></div>
+                        <div class="tab-content" id="gpsMockingContent"></div>
                         <div class="tab-content" id="advancedSettingsContent"></div>
                         <div class="tab-content" id="adbInstallContent"></div>
                         <div id="interfaces"></div>
@@ -637,6 +710,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         this.buildAdvancedSettingsTab(device);
         this.buildShellTab(device);
         this.buildAdbInstallTab();
+        this.buildGPSMockingTab();
 
         tbody.appendChild(row);
         this.buildEmulatorScreen(device);
@@ -709,6 +783,20 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             const AdbInstallButton = document.getElementById('adbInstallTab');
             if (AdbInstallButton) {
                 AdbInstallButton.onclick = () => onClick('adbInstallContent', 'adbInstallTab');
+            }
+        }
+
+        const gpsMockingContent = document.getElementById('gpsMockingContent');
+        if (gpsMockingContent && this.GPSMockingTab) {
+            gpsMockingContent.innerHTML = '';
+            gpsMockingContent.appendChild(this.GPSMockingTab);
+
+            const AdbInstallButton = document.getElementById('gpsMockingTab');
+            if (AdbInstallButton) {
+                AdbInstallButton.onclick = () => {
+                    onClick('gpsMockingContent', 'gpsMockingTab');
+                    this.initMap();
+                };
             }
         }
 
