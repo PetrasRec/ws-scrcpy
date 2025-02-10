@@ -469,28 +469,33 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             updateInputs(lat, lng);
         };
 
-        const mockLocation = (lat: number, long: number, focusView: boolean) => {
-            const data = {
-                lat: lat,
-                long: long,
-            };
-
+        const mockLocation = async (lat: number, long: number, focusView: boolean) => {
+            const data = { lat, long };
             const proxyPath = location.pathname.slice(0, -1);
-            fetch(`${proxyPath || ''}/emulator/gps/current`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            })
-                .then((response) => response.json())
-                .then(() => {
-                    addMarker(lat, long);
-                    if (focusView) {
-                        map.setView([lat, long], 13);
-                    }
+            const endpoint = `${proxyPath || ''}/emulator/gps/current`;
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
                 });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned status ${response.status}`);
+                }
+
+                addMarker(lat, long);
+                if (focusView) {
+                    map.setView([lat, long], 13);
+                }
+            } catch (error) {
+                alert(`Error: Unable to mock location. ${error}`);
+            }
         };
+
         map.on('click', (e: L.LeafletMouseEvent) => {
             const { lat, lng } = e.latlng;
             mockLocation(lat, lng, false);

@@ -9,6 +9,7 @@ import { TypedEmitter } from '../../common/TypedEmitter';
 import promClient from 'prom-client';
 import { AdbUtils } from '../goog-device/AdbUtils';
 import bunyan from 'bunyan';
+import fetch from 'node-fetch';
 
 const DEFAULT_STATIC_DIR = path.join(__dirname, './public');
 
@@ -125,7 +126,7 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                 );
 
                 try {
-                    const apiResp = await fetch(`http://localhost:6708/emulator/gps/current`, {
+                    const apiResp = await fetch(`http://127.0.0.1:6708/emulator/gps/current`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -135,8 +136,25 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                             long: long,
                         }),
                     });
-                    return res.status(apiResp.status);
+
+                    const responseBody = await apiResp.text();
+                    HttpServer.logger.info(
+                        {
+                            response: responseBody,
+                        },
+                        'Mocking emulator location response',
+                    );
+
+                    return res.status(apiResp.status).send('success');
                 } catch (error) {
+                    HttpServer.logger.error(
+                        {
+                            email: req.headers[this.AUTH_EMAIL_HEADER] || 'unknown',
+                            lat: lat,
+                            long: long,
+                        },
+                        `Error: ${error}`,
+                    );
                     return res.status(500).send('internal error');
                 }
             });
