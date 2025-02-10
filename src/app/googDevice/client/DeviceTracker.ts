@@ -47,11 +47,11 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
     protected static fullName = '';
     private static SelectCodex?: HTMLSelectElement;
     private liveDataWs?: WebSocket;
-    private GeneralTab?: HTMLDivElement;
-    private AdbShellTab?: HTMLDivElement;
-    private AdvancedSettingsTab?: HTMLDivElement;
-    private AdbInstallTab?: HTMLDivElement;
-    private GPSMockingTab?: HTMLDivElement;
+    private GeneralTabButton?: HTMLDivElement;
+    private AdbShellTabButton?: HTMLDivElement;
+    private AdvancedSettingsTabButton?: HTMLDivElement;
+    private AdbInstallTabButton?: HTMLDivElement;
+    private GPSMockingTabButton?: HTMLDivElement;
     private ShellClient?: ShellClient;
 
     public static start(hostItem: HostItem): DeviceTracker {
@@ -320,7 +320,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
 
         const div = document.createElement('div');
         div.appendChild(divHtml);
-        this.AdvancedSettingsTab = div;
+        this.AdvancedSettingsTabButton = div;
     }
 
     private buildGeneralTab(device: GoogDeviceDescriptor): void {
@@ -406,16 +406,16 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
 
         const div = document.createElement('div');
         div.appendChild(divHtml);
-        this.GeneralTab = div;
+        this.GeneralTabButton = div;
     }
 
     private buildShellTab(device: GoogDeviceDescriptor): void {
-        this.AdbShellTab = document.createElement('div');
-        this.AdbShellTab.id = 'main-terminal-container';
+        this.AdbShellTabButton = document.createElement('div');
+        this.AdbShellTabButton.id = 'main-terminal-container';
         const shellParams: ParamsShell = {
             udid: device.udid,
             action: ACTION.SHELL,
-            htmlElementToAppend: this.AdbShellTab,
+            htmlElementToAppend: this.AdbShellTabButton,
         };
 
         this.ShellClient = ShellClient.start(shellParams, this.params);
@@ -425,21 +425,21 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         const divHtml = html`
             <div>
                 <label for="lat-input">Latitude:</label>
-                <input type="text" id="lat-input" placeholder="Enter latitude" />
+                <input type="text" id="lat-input" placeholder="Latitude" />
 
                 <label for="lng-input">Longitude:</label>
-                <input type="text" id="lng-input" placeholder="Enter longitude" />
+                <input type="text" id="lng-input" placeholder="Longitude" />
 
-                <button id="mock-btn" class="button-primary">Mock</button>
+                <button id="mock-btn" class="button-primary">Set Location</button>
             </div>
             <hr class="full-line" />
-            <div id="map" style="width: 100%; height: 400px;"></div>
+            <div id="map" style="height: 50vh; width: 40vw;"></div>
             <p id="coordinates">Click on the map to select a location.</p>
         `.content;
 
         const div = document.createElement('div');
         div.appendChild(divHtml);
-        this.GPSMockingTab = div;
+        this.GPSMockingTabButton = div;
     }
 
     private initMap(): void {
@@ -511,15 +511,15 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
 
         const div = document.createElement('div');
         div.appendChild(divHtml);
-        this.AdbInstallTab = div;
+        this.AdbInstallTabButton = div;
 
-        const button = this.AdbInstallTab.querySelector('#installApkButton') as HTMLButtonElement;
+        const button = this.AdbInstallTabButton.querySelector('#installApkButton') as HTMLButtonElement;
         if (!button) {
             return;
         }
 
         button.addEventListener('click', () => {
-            if (!this.AdbInstallTab) {
+            if (!this.AdbInstallTabButton) {
                 return;
             }
 
@@ -740,9 +740,9 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         };
 
         const generalTabContent = document.getElementById('generalTabContent');
-        if (generalTabContent && this.GeneralTab) {
+        if (generalTabContent && this.GeneralTabButton) {
             generalTabContent.innerHTML = '';
-            generalTabContent.appendChild(this.GeneralTab);
+            generalTabContent.appendChild(this.GeneralTabButton);
 
             const generalButton = document.getElementById('generalTab');
             if (generalButton) {
@@ -751,9 +751,9 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         }
 
         const AdbShellContent = document.getElementById('adbShellContent');
-        if (AdbShellContent && this.AdbShellTab) {
+        if (AdbShellContent && this.AdbShellTabButton) {
             AdbShellContent.innerHTML = '';
-            AdbShellContent.appendChild(this.AdbShellTab);
+            AdbShellContent.appendChild(this.AdbShellTabButton);
 
             const AdbShellButton = document.getElementById('adbShellTab');
             if (AdbShellButton) {
@@ -765,9 +765,9 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         }
 
         const AdvancedSettingsContent = document.getElementById('advancedSettingsContent');
-        if (AdvancedSettingsContent && this.AdvancedSettingsTab) {
+        if (AdvancedSettingsContent && this.AdvancedSettingsTabButton) {
             AdvancedSettingsContent.innerHTML = '';
-            AdvancedSettingsContent.appendChild(this.AdvancedSettingsTab);
+            AdvancedSettingsContent.appendChild(this.AdvancedSettingsTabButton);
 
             const AdvancedSettingsButton = document.getElementById('advancedSettingsTab');
             if (AdvancedSettingsButton) {
@@ -776,9 +776,9 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         }
 
         const AdbInstallContent = document.getElementById('adbInstallContent');
-        if (AdbInstallContent && this.AdbInstallTab) {
+        if (AdbInstallContent && this.AdbInstallTabButton) {
             AdbInstallContent.innerHTML = '';
-            AdbInstallContent.appendChild(this.AdbInstallTab);
+            AdbInstallContent.appendChild(this.AdbInstallTabButton);
 
             const AdbInstallButton = document.getElementById('adbInstallTab');
             if (AdbInstallButton) {
@@ -787,9 +787,9 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
         }
 
         const gpsMockingContent = document.getElementById('gpsMockingContent');
-        if (gpsMockingContent && this.GPSMockingTab) {
+        if (gpsMockingContent && this.GPSMockingTabButton) {
             gpsMockingContent.innerHTML = '';
-            gpsMockingContent.appendChild(this.GPSMockingTab);
+            gpsMockingContent.appendChild(this.GPSMockingTabButton);
 
             const AdbInstallButton = document.getElementById('gpsMockingTab');
             if (AdbInstallButton) {
