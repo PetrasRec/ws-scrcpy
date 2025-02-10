@@ -607,6 +607,11 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
+"@types/geojson@*":
+  "integrity" "sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg=="
+  "resolved" "https://registry.npmjs.org/@types/geojson/-/geojson-7946.0.16.tgz"
+  "version" "7946.0.16"
+
 "@types/html-minifier-terser@^6.0.0":
   "integrity" "sha512-oh/6byDPnL1zeNXFrDXFLyZjkr1MsBG667IM792caf1L2UPOOMf65NFzjUH/ltyfwjAGfs1rsX1eftK0jC/KIg=="
   "resolved" "https://registry.npmjs.org/@types/html-minifier-terser/-/html-minifier-terser-6.1.0.tgz"
@@ -633,6 +638,13 @@
   "version" "3.1.4"
   dependencies:
     "@types/node" "*"
+
+"@types/leaflet@^1.9.16":
+  "integrity" "sha512-wzZoyySUxkgMZ0ihJ7IaUIblG8Rdc8AbbZKLneyn+QjYsj5q1QU7TEKYqwTr10BGSzY5LI7tJk9Ifo+mEjdFRw=="
+  "resolved" "https://registry.npmjs.org/@types/leaflet/-/leaflet-1.9.16.tgz"
+  "version" "1.9.16"
+  dependencies:
+    "@types/geojson" "*"
 
 "@types/micromatch@^2":
   "integrity" "sha1-HV2OqXaVnGeiNGVPsgjVaxLkG7E="
@@ -3616,6 +3628,11 @@
   "version" "1.0.1"
   dependencies:
     "readable-stream" "^2.0.5"
+
+"leaflet@^1.9.4":
+  "integrity" "sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA=="
+  "resolved" "https://registry.npmjs.org/leaflet/-/leaflet-1.9.4.tgz"
+  "version" "1.9.4"
 
 "levn@^0.4.1":
   "integrity" "sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ=="

@@ -69,6 +69,9 @@ cd ws-scrcpy
 # git tag -l
 # git checkout vX.Y.Z
 
+nvm install 16
+nvm use 16
+
 npm install
 npm start
 ```
