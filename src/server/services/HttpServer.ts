@@ -108,6 +108,39 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                     });
             });
 
+            this.mainApp.post('/emulator/gps/current', async (req, res) => {
+                const { lat, long } = req.body;
+
+                if (!lat || !long) {
+                    return res.status(400).send('Invalid request');
+                }
+
+                HttpServer.logger.info(
+                    {
+                        email: req.headers[this.AUTH_EMAIL_HEADER] || 'unknown',
+                        lat: lat,
+                        long: long,
+                    },
+                    'Mocking emulator location',
+                );
+
+                try {
+                    const apiResp = await fetch(`http://localhost:6708/emulator/gps/current`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            lat: lat,
+                            long: long,
+                        }),
+                    });
+                    return res.status(apiResp.status);
+                } catch (error) {
+                    return res.status(500).send('internal error');
+                }
+            });
+
             this.mainApp.post('/restart-tcp', async (req) => {
                 // TCP connection for some reason gets corrupted after prolonged idling or after restart
                 // adb tcpip 5555 fixes this issue, for now providing temporary workaround

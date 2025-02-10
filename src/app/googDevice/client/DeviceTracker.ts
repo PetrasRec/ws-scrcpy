@@ -469,9 +469,31 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             updateInputs(lat, lng);
         };
 
+        const mockLocation = (lat: number, long: number, focusView: boolean) => {
+            const data = {
+                lat: lat,
+                long: long,
+            };
+
+            const proxyPath = location.pathname.slice(0, -1);
+            fetch(`${proxyPath || ''}/emulator/gps/current`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            })
+                .then((response) => response.json())
+                .then(() => {
+                    addMarker(lat, long);
+                    if (focusView) {
+                        map.setView([lat, long], 13);
+                    }
+                });
+        };
         map.on('click', (e: L.LeafletMouseEvent) => {
             const { lat, lng } = e.latlng;
-            addMarker(lat, lng);
+            mockLocation(lat, lng, false);
         });
 
         // Handle "Mock" button click to manually place a marker
@@ -487,8 +509,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 return;
             }
 
-            addMarker(lat, lng);
-            map.setView([lat, lng], 13);
+            mockLocation(lat, lng, true);
         });
     }
 
