@@ -423,7 +423,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
 
     private buildGPSMockingTab(): void {
         const divHtml = html`
-            <div>
+            <div style="width: 40vw;">
                 <label for="lat-input">Latitude:</label>
                 <input type="text" id="lat-input" placeholder="Latitude" />
 
@@ -433,7 +433,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 <button id="mock-btn" class="button-primary">Set Location</button>
             </div>
             <hr class="full-line" />
-            <div id="map" style="height: 50vh; width: 40vw;"></div>
+            <div id="map" style="height: 50vh; width: 100%;"></div>
             <p id="coordinates">Click on the map to select a location.</p>
         `.content;
 
@@ -469,9 +469,36 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
             updateInputs(lat, lng);
         };
 
+        const mockLocation = async (lat: number, long: number, focusView: boolean) => {
+            const data = { lat, long };
+            const proxyPath = location.pathname.slice(0, -1);
+            const endpoint = `${proxyPath || ''}/emulator/gps/current`;
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned status ${response.status}`);
+                }
+
+                addMarker(lat, long);
+                if (focusView) {
+                    map.setView([lat, long], 13);
+                }
+            } catch (error) {
+                alert(`Error: Unable to mock location. ${error}`);
+            }
+        };
+
         map.on('click', (e: L.LeafletMouseEvent) => {
             const { lat, lng } = e.latlng;
-            addMarker(lat, lng);
+            mockLocation(lat, lng, false);
         });
 
         // Handle "Mock" button click to manually place a marker
@@ -487,8 +514,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 return;
             }
 
-            addMarker(lat, lng);
-            map.setView([lat, lng], 13);
+            mockLocation(lat, lng, true);
         });
     }
 

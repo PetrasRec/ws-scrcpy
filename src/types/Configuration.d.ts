@@ -38,6 +38,7 @@ export interface ServerItem {
 // The configuration file must contain a single object with this structure
 export interface Configuration {
     server?: ServerItem[];
+    agentAddress?: string;
     runApplTracker?: boolean;
     announceApplTracker?: boolean;
     runGoogTracker?: boolean;

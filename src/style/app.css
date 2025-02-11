@@ -79,11 +79,14 @@ body.stream {
 }
 
 .device-view {
-    z-index: 100;
+    /*
+        https://leafletjs.com/reference.html#map-pane
+        leaflet map's z index goes up to 700, so we need to be higher than that
+    */
+    z-index: 1000;
     position: absolute;
     top: 0;
     right: 0;
-    z-index: 3;
 }
 
 .video-layer {

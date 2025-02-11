@@ -9,6 +9,7 @@ import { TypedEmitter } from '../../common/TypedEmitter';
 import promClient from 'prom-client';
 import { AdbUtils } from '../goog-device/AdbUtils';
 import bunyan from 'bunyan';
+import fetch from 'node-fetch';
 
 const DEFAULT_STATIC_DIR = path.join(__dirname, './public');
 
@@ -106,6 +107,61 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                         HttpServer.logger.info({ error: err?.message }, 'Health failed');
                         res.status(503).send({ error: err.message });
                     });
+            });
+
+            this.mainApp.post('/emulator/gps/current', async (req, res) => {
+                const { lat, long } = req.body;
+
+                if (!lat || !long) {
+                    return res.status(400).send('Invalid request');
+                }
+
+                HttpServer.logger.info(
+                    {
+                        email: req.headers[this.AUTH_EMAIL_HEADER] || 'unknown',
+                        lat: lat,
+                        long: long,
+                    },
+                    'Mocking emulator location',
+                );
+
+                try {
+                    const agentAddress = Config.getInstance().agentAddress;
+                    if (!agentAddress) {
+                        return res.status(500).send('agent address is not configured');
+                    }
+
+                    const apiResp = await fetch(`${agentAddress}/emulator/gps/current`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            lat: lat,
+                            long: long,
+                        }),
+                    });
+
+                    const responseBody = await apiResp.text();
+                    HttpServer.logger.info(
+                        {
+                            response: responseBody,
+                        },
+                        'Mocking emulator location response',
+                    );
+
+                    return res.status(apiResp.status).send('success');
+                } catch (error) {
+                    HttpServer.logger.error(
+                        {
+                            email: req.headers[this.AUTH_EMAIL_HEADER] || 'unknown',
+                            lat: lat,
+                            long: long,
+                        },
+                        `Error: ${error}`,
+                    );
+                    return res.status(500).send('internal error');
+                }
             });
 
             this.mainApp.post('/restart-tcp', async (req) => {

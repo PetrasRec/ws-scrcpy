@@ -6,6 +6,7 @@ import { EnvName } from './EnvName';
 import YAML from 'yaml';
 
 const DEFAULT_PORT = 8000;
+const DEFAULT_AGENT_ADDRESS = 'http://127.0.0.1:6708';
 
 const YAML_RE = /^.+\.(yaml|yml)$/i;
 const JSON_RE = /^.+\.(json|js)$/i;
@@ -35,6 +36,7 @@ export class Config {
         const defaultConfig: Required<Configuration> = {
             runGoogTracker,
             runApplTracker,
+            agentAddress: DEFAULT_AGENT_ADDRESS,
             announceGoogTracker,
             announceApplTracker,
             server,
@@ -151,5 +153,9 @@ export class Config {
 
     public get servers(): ServerItem[] {
         return this.fullConfig.server;
+    }
+
+    public get agentAddress(): string {
+        return this.fullConfig.agentAddress;
     }
 }
