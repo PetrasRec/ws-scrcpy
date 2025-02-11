@@ -29,15 +29,22 @@ export class CurrentWindow {
         const target = this.document;
 
         for (const styleSheet of Array.from(source.styleSheets)) {
-            const style = target.createElement('style');
-            const cssRules = Array.from(styleSheet.cssRules)
-                .map((rule) => rule.cssText)
-                .join('');
+            try {
+                if (styleSheet.cssRules) {
+                    const style = target.createElement('style');
+                    const cssRules = Array.from(styleSheet.cssRules)
+                        .map((rule) => rule.cssText)
+                        .join('');
 
-            style.textContent = cssRules;
-            target.head.appendChild(style);
+                    style.textContent = cssRules;
+                    target.head.appendChild(style);
+                }
+            } catch (error) {
+                console.warn('Skipping cross-origin stylesheet:', styleSheet.href, error);
+            }
         }
     }
+
 
     /**
      * Wrapper around `window.resizeTo` that takes the outer window padding into account
