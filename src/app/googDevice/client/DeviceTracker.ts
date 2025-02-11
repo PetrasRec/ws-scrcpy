@@ -423,7 +423,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
 
     private buildGPSMockingTab(): void {
         const divHtml = html`
-            <div>
+            <div style="width: 40vw;">
                 <label for="lat-input">Latitude:</label>
                 <input type="text" id="lat-input" placeholder="Latitude" />
 
@@ -433,7 +433,7 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
                 <button id="mock-btn" class="button-primary">Set Location</button>
             </div>
             <hr class="full-line" />
-            <div id="map" style="height: 50vh; width: 40vw;"></div>
+            <div id="map" style="height: 50vh; width: 100%;"></div>
             <p id="coordinates">Click on the map to select a location.</p>
         `.content;
 

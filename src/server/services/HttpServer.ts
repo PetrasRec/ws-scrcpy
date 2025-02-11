@@ -126,7 +126,12 @@ export class HttpServer extends TypedEmitter<HttpServerEvents> implements Servic
                 );
 
                 try {
-                    const apiResp = await fetch(`http://127.0.0.1:6708/emulator/gps/current`, {
+                    const agentAddress = Config.getInstance().agentAddress;
+                    if (!agentAddress) {
+                        return res.status(500).send('agent address is not configured');
+                    }
+
+                    const apiResp = await fetch(`${agentAddress}/emulator/gps/current`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
