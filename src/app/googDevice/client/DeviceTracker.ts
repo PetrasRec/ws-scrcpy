@@ -27,6 +27,9 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerRetina from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
+// https://github.com/PaulLeCam/react-leaflet/issues/453
+// https://stackoverflow.com/questions/49441600/react-leaflet-marker-files-not-found
+// We need to override the default icon URLs to point to the correct location
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: markerRetina,
     iconUrl: markerIcon,
