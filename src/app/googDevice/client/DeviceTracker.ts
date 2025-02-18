@@ -22,6 +22,19 @@ import { ParamsStreamScrcpy } from '../../../types/ParamsStreamScrcpy';
 import moment from 'moment';
 import { Flipper } from './Flipper';
 import * as L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+// https://github.com/PaulLeCam/react-leaflet/issues/453
+// https://stackoverflow.com/questions/49441600/react-leaflet-marker-files-not-found
+// We need to override the default icon URLs to point to the correct location
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerRetina,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+});
 
 type Field = keyof GoogDeviceDescriptor | ((descriptor: GoogDeviceDescriptor) => string);
 type DescriptionColumn = { title: string; field: Field };
@@ -443,9 +456,11 @@ export class DeviceTracker extends BaseDeviceTracker<GoogDeviceDescriptor, never
     }
 
     private initMap(): void {
-        const map = L.map('map', { attributionControl: false }).setView([52.3676, 4.9041], 13); // Centered on Amsterdam
+        const map = L.map('map', { attributionControl: true }).setView([52.3676, 4.9041], 13); // Centered on Amsterdam
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        }).addTo(map);
 
         let marker: L.Marker | null = null;
 
