@@ -22,6 +22,7 @@ import { ParamsStreamScrcpy } from '../../../types/ParamsStreamScrcpy';
 import moment from 'moment';
 import { Flipper } from './Flipper';
 import * as L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 type Field = keyof GoogDeviceDescriptor | ((descriptor: GoogDeviceDescriptor) => string);
 type DescriptionColumn = { title: string; field: Field };

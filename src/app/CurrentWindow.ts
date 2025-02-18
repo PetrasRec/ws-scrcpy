@@ -27,24 +27,15 @@ export class CurrentWindow {
     public copyStylesheets(): void {
         const source = CurrentWindow.main.document;
         const target = this.document;
-        const currentOrigin = window.location.origin;
 
         for (const styleSheet of Array.from(source.styleSheets)) {
-            try {
-                const isSameOrigin = !styleSheet.href || new URL(styleSheet.href).origin === currentOrigin;
+            const style = target.createElement('style');
+            const cssRules = Array.from(styleSheet.cssRules)
+                .map((rule) => rule.cssText)
+                .join('');
 
-                if (isSameOrigin && styleSheet.cssRules) {
-                    const style = target.createElement('style');
-                    const cssRules = Array.from(styleSheet.cssRules)
-                        .map((rule) => rule.cssText)
-                        .join('');
-
-                    style.textContent = cssRules;
-                    target.head.appendChild(style);
-                }
-            } catch (error) {
-                console.warn('Skipping inaccessible stylesheet:', styleSheet.href, error);
-            }
+            style.textContent = cssRules;
+            target.head.appendChild(style);
         }
     }
 
