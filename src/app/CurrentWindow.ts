@@ -27,10 +27,13 @@ export class CurrentWindow {
     public copyStylesheets(): void {
         const source = CurrentWindow.main.document;
         const target = this.document;
+        const currentOrigin = window.location.origin;
 
         for (const styleSheet of Array.from(source.styleSheets)) {
             try {
-                if (styleSheet.cssRules) {
+                const isSameOrigin = !styleSheet.href || new URL(styleSheet.href).origin === currentOrigin;
+
+                if (isSameOrigin && styleSheet.cssRules) {
                     const style = target.createElement('style');
                     const cssRules = Array.from(styleSheet.cssRules)
                         .map((rule) => rule.cssText)
@@ -40,11 +43,10 @@ export class CurrentWindow {
                     target.head.appendChild(style);
                 }
             } catch (error) {
-                console.warn('Skipping cross-origin stylesheet:', styleSheet.href, error);
+                console.warn('Skipping inaccessible stylesheet:', styleSheet.href, error);
             }
         }
     }
-
 
     /**
      * Wrapper around `window.resizeTo` that takes the outer window padding into account
