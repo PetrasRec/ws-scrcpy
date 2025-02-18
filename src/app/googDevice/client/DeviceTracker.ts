@@ -23,6 +23,15 @@ import moment from 'moment';
 import { Flipper } from './Flipper';
 import * as L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerRetina from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: markerRetina,
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+});
 
 type Field = keyof GoogDeviceDescriptor | ((descriptor: GoogDeviceDescriptor) => string);
 type DescriptionColumn = { title: string; field: Field };
